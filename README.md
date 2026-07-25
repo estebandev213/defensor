@@ -2,7 +2,7 @@
 
 Defensor is a Spanish-language web foundation for clear, cautious guidance on Peruvian labor questions. The product is designed to answer from official legal sources, show verifiable citations, and abstain when the available evidence is not sufficient.
 
-The current branch contains the Foundation, Data, Retrieval, and Safety pipeline phases. It is not yet connected to a production LLM or populated legal corpus.
+The current branch contains the Foundation, Data, Retrieval, Safety pipeline, and Chat UI phases. It is not yet connected to a production LLM or populated legal corpus.
 
 ## Current scope
 
@@ -16,8 +16,9 @@ The current branch contains the Foundation, Data, Retrieval, and Safety pipeline
 - Typed legal catalog repository, corpus schema validation, and reproducible ingestion commands.
 - Hybrid lexical/vector retrieval contracts with Reciprocal Rank Fusion, filters, deduplication, diversity, and a debug CLI.
 - Deterministic query classification, clarification gate, evidence gate, structured legal-answer schema, abstention responses, and source-backed citation validation.
+- Temporary in-browser chat state with high-level processing states, SSE response transport, safe clarification/abstention rendering, feedback controls, accessible source drawer, and no conversation persistence.
 
-Not included yet: a configured database, populated legal corpus, LLM providers, streaming chat, authentication, persistent history, favorites, calculators, profiles, payments, or document uploads.
+Not included yet: a configured database, populated legal corpus, production LLM provider, retrieval-backed answer generation, authentication, persistent history, favorites, calculators, profiles, payments, or document uploads.
 
 ## Architecture
 
@@ -25,14 +26,15 @@ Not included yet: a configured database, populated legal corpus, LLM providers, 
 Next.js App Router
 |- src/app          routes, layout, metadata, boundaries, and healthcheck
 |- src/components   accessible shell and reusable UI components
-|- src/server       validated configuration, security, legal contracts, retrieval, and safety gates
+|- src/server       validated configuration, security, legal contracts, retrieval, safety gates, and API routes
+|- src/features     temporary chat state and response transport contracts
 |- src/db           typed records, migrations, and database client
 |- scripts           database checks and reproducible corpus validation
 |- src/lib          shared utilities
 `- src/styles       design tokens and global styles
 ```
 
-The foundation keeps provider and legal-domain work out of the UI so later phases can add LLM integration and streaming without rewriting the shell. Safety gates do not trust model instructions alone: evidence and citation checks are deterministic.
+The foundation keeps provider and legal-domain work out of the UI. The current chat transport returns only deterministic clarification or abstention states until a real corpus and LLM provider are configured; it never fabricates a legal answer.
 
 ## Requirements
 
@@ -88,4 +90,4 @@ Defensor is not a law firm, does not represent the user, and does not replace pr
 
 ## Roadmap
 
-The next gated phase is Phase 5 - Chat UI: connect the safety pipeline to provider-backed structured answers, streaming state, citations, feedback, and error states.
+The next gated phase is Phase 6 - Landing + SEO: educational routes, metadata, sitemap, robots, JSON-LD, and Open Graph.
