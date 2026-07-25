@@ -2,7 +2,7 @@
 
 Defensor is a Spanish-language web foundation for clear, cautious guidance on Peruvian labor questions. The product is designed to answer from official legal sources, show verifiable citations, and abstain when the available evidence is not sufficient.
 
-The current branch contains Phase 1 - Foundation and the beginning of Phase 2 - Data. It is a production-minded shell and data foundation, not yet a connected legal assistant.
+The current branch contains the Foundation, Data, Retrieval, and Safety pipeline phases. It is not yet connected to a production LLM or populated legal corpus.
 
 ## Current scope
 
@@ -14,8 +14,10 @@ The current branch contains Phase 1 - Foundation and the beginning of Phase 2 - 
 - Vitest unit tests and Playwright smoke-test configuration.
 - Versioned PostgreSQL/Supabase migration for legal sources, documents, chunks, and feedback.
 - Typed legal catalog repository, corpus schema validation, and reproducible ingestion commands.
+- Hybrid lexical/vector retrieval contracts with Reciprocal Rank Fusion, filters, deduplication, diversity, and a debug CLI.
+- Deterministic query classification, clarification gate, evidence gate, structured legal-answer schema, abstention responses, and source-backed citation validation.
 
-Not included yet: a configured database, populated legal corpus, LLM providers, embeddings, retrieval, streaming chat, authentication, persistent history, favorites, calculators, profiles, payments, or document uploads.
+Not included yet: a configured database, populated legal corpus, LLM providers, streaming chat, authentication, persistent history, favorites, calculators, profiles, payments, or document uploads.
 
 ## Architecture
 
@@ -23,14 +25,14 @@ Not included yet: a configured database, populated legal corpus, LLM providers, 
 Next.js App Router
 |- src/app          routes, layout, metadata, boundaries, and healthcheck
 |- src/components   accessible shell and reusable UI components
-|- src/server       validated configuration, security, legal contracts, and repositories
+|- src/server       validated configuration, security, legal contracts, retrieval, and safety gates
 |- src/db           typed records, migrations, and database client
 |- scripts           database checks and reproducible corpus validation
 |- src/lib          shared utilities
 `- src/styles       design tokens and global styles
 ```
 
-The foundation keeps provider and legal-domain work out of the UI so later phases can add data, retrieval, safety gates, citation validation, and streaming without rewriting the shell.
+The foundation keeps provider and legal-domain work out of the UI so later phases can add LLM integration and streaming without rewriting the shell. Safety gates do not trust model instructions alone: evidence and citation checks are deterministic.
 
 ## Requirements
 
@@ -86,4 +88,4 @@ Defensor is not a law firm, does not represent the user, and does not replace pr
 
 ## Roadmap
 
-The next gated phase is Phase 4 - Safety pipeline: add classification, clarification, evidence gates, and citation validation on top of the retrieval contracts.
+The next gated phase is Phase 5 - Chat UI: connect the safety pipeline to provider-backed structured answers, streaming state, citations, feedback, and error states.
