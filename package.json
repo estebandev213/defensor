@@ -12,11 +12,17 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "db:migrate": "tsx scripts/db/migrate.ts",
+    "db:check": "tsx scripts/db/check.ts",
+    "ingest": "tsx scripts/ingest/index.ts",
+    "ingest:dry": "tsx scripts/ingest/index.ts --dry-run",
+    "ingest:validate": "tsx scripts/ingest/validate.ts",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {
     "next": "15.5.9",
     "next-themes": "0.4.4",
+    "postgres": "^3.4.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "zod": "3.25.76"
@@ -36,6 +42,7 @@
     "jsdom": "26.1.0",
     "postcss": "8.5.3",
     "tailwindcss": "3.4.17",
+    "tsx": "^4.23.1",
     "typescript": "5.8.3",
     "vitest": "3.1.3"
   }

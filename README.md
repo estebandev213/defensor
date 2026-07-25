@@ -2,7 +2,7 @@
 
 Defensor is a Spanish-language web foundation for clear, cautious guidance on Peruvian labor questions. The product is designed to answer from official legal sources, show verifiable citations, and abstain when the available evidence is not sufficient.
 
-This first commit contains Phase 1 - Foundation only. It is a production-minded shell, not yet a connected legal assistant.
+The current branch contains Phase 1 - Foundation and the beginning of Phase 2 - Data. It is a production-minded shell and data foundation, not yet a connected legal assistant.
 
 ## Current scope
 
@@ -12,8 +12,10 @@ This first commit contains Phase 1 - Foundation only. It is a production-minded 
 - Empty sources panel with no invented legal content.
 - Zod environment validation, safe logging, error boundaries, and `GET /api/health`.
 - Vitest unit tests and Playwright smoke-test configuration.
+- Versioned PostgreSQL/Supabase migration for legal sources, documents, chunks, and feedback.
+- Typed legal catalog repository, corpus schema validation, and reproducible ingestion commands.
 
-Not included yet: LLM providers, database, Supabase, legal corpus, embeddings, retrieval, streaming chat, authentication, persistent history, favorites, calculators, profiles, payments, or document uploads.
+Not included yet: a configured database, populated legal corpus, LLM providers, embeddings, retrieval, streaming chat, authentication, persistent history, favorites, calculators, profiles, payments, or document uploads.
 
 ## Architecture
 
@@ -21,7 +23,9 @@ Not included yet: LLM providers, database, Supabase, legal corpus, embeddings, r
 Next.js App Router
 |- src/app          routes, layout, metadata, boundaries, and healthcheck
 |- src/components   accessible shell and reusable UI components
-|- src/server       validated configuration, security, and telemetry types
+|- src/server       validated configuration, security, legal contracts, and repositories
+|- src/db           typed records, migrations, and database client
+|- scripts           database checks and reproducible corpus validation
 |- src/lib          shared utilities
 `- src/styles       design tokens and global styles
 ```
@@ -50,6 +54,17 @@ Initial routes:
 
 Copy `.env.example` to `.env.local` for local configuration. The Foundation runs without external providers.
 
+## Data commands
+
+```bash
+pnpm ingest:validate
+pnpm ingest:dry
+pnpm db:migrate
+pnpm db:check
+```
+
+The committed seed is intentionally empty until official legal sources are reviewed and ingested. Database commands require `DATABASE_URL`.
+
 ## Verification
 
 ```bash
@@ -71,4 +86,4 @@ Defensor is not a law firm, does not represent the user, and does not replace pr
 
 ## Roadmap
 
-The next gated phase is Phase 2 - Data: review the legal-source schema, migrations, repositories, and corpus-ingestion strategy before connecting retrieval or AI providers.
+The next gated phase is Phase 3 - Retrieval: add lexical/vector search and ranking only after the legal corpus and Data gates are approved.
