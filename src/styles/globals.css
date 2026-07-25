@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #e7e9e4;
+  --surface: #f6f6f2;
+  --paper: #fcfcfa;
+  --ink: #16253e;
+  --navy: #16253e;
+  --navy-soft: #4b5b72;
+  --muted: #788493;
+  --brass: #a9843f;
+  --brass-soft: #f0e6d2;
+  --verified: #2e6f5e;
+  --danger: #a5403b;
+  --border: #dad9cf;
+  --border-soft: #e6e5dc;
+}
+
+.dark {
+  --background: #111a29;
+  --surface: #182437;
+  --paper: #202d41;
+  --ink: #f6f6f2;
+  --navy: #e9ece8;
+  --navy-soft: #b5c0cc;
+  --muted: #8492a3;
+  --brass: #d1ad65;
+  --brass-soft: #3b3427;
+  --verified: #66aa95;
+  --danger: #d47b74;
+  --border: #344256;
+  --border-soft: #29384c;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  min-width: 320px;
+  background: var(--background);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--ink);
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--brass-soft);
+  color: var(--ink);
+}
+
+button,
+a,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
