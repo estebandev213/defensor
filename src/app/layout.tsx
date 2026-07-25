@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { siteConfig } from "@/lib/site";
 import { env } from "@/server/security/env";
 import "@/styles/globals.css";
 
@@ -27,12 +28,25 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Defensor — Orientación laboral del Perú",
+    default: siteConfig.title,
     template: "%s | Defensor",
   },
-  description:
-    "Entiende tus derechos laborales con orientación clara y fuentes oficiales del Perú.",
+  description: siteConfig.description,
   metadataBase: new URL(env.APP_URL),
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "es_PE",
+    siteName: siteConfig.name,
+    title: siteConfig.title,
+    description: siteConfig.description,
+    url: siteConfig.url,
+  },
+  twitter: {
+    card: "summary",
+    title: siteConfig.title,
+    description: siteConfig.description,
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

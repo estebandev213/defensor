@@ -2,7 +2,7 @@
 
 Defensor is a Spanish-language web foundation for clear, cautious guidance on Peruvian labor questions. The product is designed to answer from official legal sources, show verifiable citations, and abstain when the available evidence is not sufficient.
 
-The current branch contains the Foundation, Data, Retrieval, Safety pipeline, and Chat UI phases. It is not yet connected to a production LLM or populated legal corpus.
+The current branch contains the Foundation, Data, Retrieval, Safety pipeline, Chat UI, and public SEO phases. It is not yet connected to a production LLM or populated legal corpus.
 
 ## Current scope
 
@@ -17,6 +17,7 @@ The current branch contains the Foundation, Data, Retrieval, Safety pipeline, an
 - Hybrid lexical/vector retrieval contracts with Reciprocal Rank Fusion, filters, deduplication, diversity, and a debug CLI.
 - Deterministic query classification, clarification gate, evidence gate, structured legal-answer schema, abstention responses, and source-backed citation validation.
 - Temporary in-browser chat state with high-level processing states, SSE response transport, safe clarification/abstention rendering, feedback controls, accessible source drawer, and no conversation persistence.
+- Public landing, methodology, sources, labor-topic, privacy, and terms pages with canonical metadata, sitemap, robots rules, and JSON-LD on the landing and process pages.
 
 Not included yet: a configured database, populated legal corpus, production LLM provider, retrieval-backed answer generation, authentication, persistent history, favorites, calculators, profiles, payments, or document uploads.
 
@@ -52,8 +53,14 @@ pnpm dev
 
 Initial routes:
 
-- `/` - public landing shell.
+- `/` - public landing page.
 - `/chat` - consultation shell.
+- `/como-funciona` - product and safety process.
+- `/metodologia` - retrieval, evidence, and citation methodology.
+- `/fuentes` - public source-catalog status.
+- `/derechos-laborales` - index of preparation pages for supported topics.
+- `/privacidad` and `/terminos` - V1 privacy and scope notices.
+- `/sitemap.xml` and `/robots.txt` - technical SEO routes.
 - `/api/health` - process and minimal configuration healthcheck.
 
 Copy `.env.example` to `.env.local` for local configuration. The Foundation runs without external providers.
@@ -90,4 +97,4 @@ Defensor is not a law firm, does not represent the user, and does not replace pr
 
 ## Roadmap
 
-The next gated phase is Phase 6 - Landing + SEO: educational routes, metadata, sitemap, robots, JSON-LD, and Open Graph.
+The next gated phase is Phase 7 - Evaluation: golden dataset, retrieval metrics, answer metrics, and reproducible reports.
