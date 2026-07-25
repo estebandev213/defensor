@@ -18,6 +18,10 @@
     "ingest:dry": "tsx scripts/ingest/index.ts --dry-run",
     "ingest:validate": "tsx scripts/ingest/validate.ts",
     "retrieval:debug": "tsx scripts/retrieval/debug.ts",
+    "eval": "tsx scripts/evaluate/run.ts",
+    "eval:retrieval": "tsx scripts/evaluate/retrieval.ts",
+    "eval:answers": "tsx scripts/evaluate/answers.ts",
+    "eval:report": "tsx scripts/evaluate/report.ts",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {

@@ -2,7 +2,7 @@
 
 Defensor is a Spanish-language web foundation for clear, cautious guidance on Peruvian labor questions. The product is designed to answer from official legal sources, show verifiable citations, and abstain when the available evidence is not sufficient.
 
-The current branch contains the Foundation, Data, Retrieval, Safety pipeline, Chat UI, and public SEO phases. It is not yet connected to a production LLM or populated legal corpus.
+The current branch contains the Foundation, Data, Retrieval, Safety pipeline, Chat UI, public SEO, and Evaluation phases. It is not yet connected to a production LLM or populated legal corpus.
 
 ## Current scope
 
@@ -18,6 +18,7 @@ The current branch contains the Foundation, Data, Retrieval, Safety pipeline, Ch
 - Deterministic query classification, clarification gate, evidence gate, structured legal-answer schema, abstention responses, and source-backed citation validation.
 - Temporary in-browser chat state with high-level processing states, SSE response transport, safe clarification/abstention rendering, feedback controls, accessible source drawer, and no conversation persistence.
 - Public landing, methodology, sources, labor-topic, privacy, and terms pages with canonical metadata, sitemap, robots rules, and JSON-LD on the landing and process pages.
+- Versioned 80-case golden evaluation dataset, retrieval/generation/product metric functions, and blocked-state reports that keep unmeasured values null until a corpus and predictions exist.
 
 Not included yet: a configured database, populated legal corpus, production LLM provider, retrieval-backed answer generation, authentication, persistent history, favorites, calculators, profiles, payments, or document uploads.
 
@@ -72,9 +73,12 @@ pnpm ingest:validate
 pnpm ingest:dry
 pnpm db:migrate
 pnpm db:check
+pnpm eval
 ```
 
 The committed seed is intentionally empty until official legal sources are reviewed and ingested. Database commands require `DATABASE_URL`.
+
+`pnpm eval` validates `data/evaluation/golden.json` and writes `artifacts/evals/latest.json` and `artifacts/evals/latest.md`. The current report is intentionally blocked because the legal corpus and prediction providers are not configured.
 
 ## Verification
 
@@ -97,4 +101,4 @@ Defensor is not a law firm, does not represent the user, and does not replace pr
 
 ## Roadmap
 
-The next gated phase is Phase 7 - Evaluation: golden dataset, retrieval metrics, answer metrics, and reproducible reports.
+The next gated phase is Phase 8 - Production hardening: rate limiting, security headers, PII redaction, provider fallbacks, timeouts, observability, and CI/CD.
