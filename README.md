@@ -86,4 +86,4 @@ Defensor is not a law firm, does not represent the user, and does not replace pr
 
 ## Roadmap
 
-The next gated phase is Phase 3 - Retrieval: add lexical/vector search and ranking only after the legal corpus and Data gates are approved.
+The next gated phase is Phase 4 - Safety pipeline: add classification, clarification, evidence gates, and citation validation on top of the retrieval contracts.
