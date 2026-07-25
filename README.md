@@ -2,7 +2,7 @@
 
 Defensor is a Spanish-language web foundation for clear, cautious guidance on Peruvian labor questions. The product is designed to answer from official legal sources, show verifiable citations, and abstain when the available evidence is not sufficient.
 
-The current branch contains the Foundation, Data, Retrieval, Safety pipeline, Chat UI, public SEO, and Evaluation phases. It is not yet connected to a production LLM or populated legal corpus.
+The current branch contains the Foundation, Data, Retrieval, Safety pipeline, Chat UI, public SEO, Evaluation, and production-hardening phases. It is not yet connected to a production LLM or populated legal corpus.
 
 ## Current scope
 
@@ -19,6 +19,7 @@ The current branch contains the Foundation, Data, Retrieval, Safety pipeline, Ch
 - Temporary in-browser chat state with high-level processing states, SSE response transport, safe clarification/abstention rendering, feedback controls, accessible source drawer, and no conversation persistence.
 - Public landing, methodology, sources, labor-topic, privacy, and terms pages with canonical metadata, sitemap, robots rules, and JSON-LD on the landing and process pages.
 - Versioned 80-case golden evaluation dataset, retrieval/generation/product metric functions, and blocked-state reports that keep unmeasured values null until a corpus and predictions exist.
+- Production safeguards: hashed in-memory rate limits, request timeouts and abort handling, security headers, PII-redacted logs, bounded safe telemetry, provider fallback contracts, corpus export, secret scanning, and GitHub Actions checks.
 
 Not included yet: a configured database, populated legal corpus, production LLM provider, retrieval-backed answer generation, authentication, persistent history, favorites, calculators, profiles, payments, or document uploads.
 
@@ -74,6 +75,8 @@ pnpm ingest:dry
 pnpm db:migrate
 pnpm db:check
 pnpm eval
+pnpm corpus:export
+pnpm security:scan
 ```
 
 The committed seed is intentionally empty until official legal sources are reviewed and ingested. Database commands require `DATABASE_URL`.
@@ -95,10 +98,10 @@ Tests are deterministic and do not call a real LLM. On a new machine, Playwright
 
 ## Security and privacy
 
-The logger redacts sensitive keys and user-content fields. This phase does not send prompts to analytics or persist conversations. Do not share DNI, addresses, phone numbers, full names, or confidential documents.
+The logger redacts sensitive keys, user-content fields, email addresses, Peruvian phone numbers, and DNI-like identifiers. This phase does not send prompts to analytics or persist conversations. Rate limiting and telemetry are process-local fallbacks until a shared production provider is configured. Do not share DNI, addresses, phone numbers, full names, or confidential documents.
 
 Defensor is not a law firm, does not represent the user, and does not replace professional advice. Future legal answers must rely on recovered evidence and must abstain when reliable support is unavailable.
 
 ## Roadmap
 
-The next gated phase is Phase 8 - Production hardening: rate limiting, security headers, PII redaction, provider fallbacks, timeouts, observability, and CI/CD.
+The next gated phase is Phase 9 - launch audit: configure external infrastructure, ingest reviewed official sources, connect providers, and rerun the evaluation gates before public release.

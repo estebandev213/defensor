@@ -1,3 +1,5 @@
+import { redactPii } from "@/server/security/pii";
+
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
 type SafeLogValue =
@@ -18,12 +20,13 @@ function toSafeValue(value: unknown, key = ""): SafeLogValue | undefined {
 
   if (
     value === null ||
-    typeof value === "string" ||
     typeof value === "number" ||
     typeof value === "boolean"
   ) {
     return value;
   }
+
+  if (typeof value === "string") return redactPii(value);
 
   if (Array.isArray(value)) {
     return value.flatMap((item) => {

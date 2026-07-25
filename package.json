@@ -22,6 +22,8 @@
     "eval:retrieval": "tsx scripts/evaluate/retrieval.ts",
     "eval:answers": "tsx scripts/evaluate/answers.ts",
     "eval:report": "tsx scripts/evaluate/report.ts",
+    "corpus:export": "tsx scripts/maintenance/export-corpus.ts",
+    "security:scan": "tsx scripts/security/scan-secrets.ts",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {

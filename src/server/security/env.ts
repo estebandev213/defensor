@@ -38,6 +38,27 @@ const envSchema = z.object({
   ),
   RATE_LIMIT_PROVIDER: optionalEnvString(),
   RATE_LIMIT_SECRET: optionalEnvString(),
+  RATE_LIMIT_WINDOW_MS: z.preprocess(
+    (value) => (value === "" || value === undefined ? undefined : value),
+    z.coerce.number().int().positive().default(60_000),
+  ),
+  RATE_LIMIT_MAX_REQUESTS: z.preprocess(
+    (value) => (value === "" || value === undefined ? undefined : value),
+    z.coerce.number().int().positive().default(10),
+  ),
+  RATE_LIMIT_DAILY_MAX: z.preprocess(
+    (value) => (value === "" || value === undefined ? undefined : value),
+    z.coerce.number().int().positive().default(100),
+  ),
+  REQUEST_TIMEOUT_MS: z.preprocess(
+    (value) => (value === "" || value === undefined ? undefined : value),
+    z.coerce.number().int().positive().default(12_000),
+  ),
+  PII_REDACTION_ENABLED: z.preprocess(
+    (value) =>
+      typeof value === "string" ? value.toLowerCase() !== "false" : value,
+    z.boolean().default(true),
+  ),
   LEGAL_CORPUS_VERSION: optionalEnvString(),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 });
