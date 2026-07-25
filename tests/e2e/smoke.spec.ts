@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-test("landing can open the Foundation chat shell", async ({ page }) => {
+test("landing can open the styled Foundation chat shell", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Entiende tus derechos laborales." })).toBeVisible();
   await page.getByRole("link", { name: /consultar mi caso/i }).first().click();
   await expect(page).toHaveURL(/\/chat$/);
-  await expect(page.getByRole("heading", { name: "Entiende tu situación laboral con claridad." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "En resumen" })).toBeVisible();
 });
 
 test("mobile menu exposes only the V1 sidebar controls", async ({ page }) => {
