@@ -45,6 +45,10 @@ function hasConflictingSources(chunks: readonly RetrievedChunk[]): boolean {
   return false;
 }
 
+function isUsableStatus(status: RetrievedChunk["status"]): boolean {
+  return status === "vigente" || status === "modificada";
+}
+
 function abstain(
   reasonCode: Exclude<EvidenceDecision["reasonCode"], "sufficient_evidence" | "missing_material_fact">,
 ): EvidenceDecision {
@@ -82,11 +86,11 @@ export function evaluateEvidence(
   const eligible = input.chunks.filter(
     (chunk) =>
       chunk.fusionScore >= minFusionScore &&
-      chunk.status === "vigente" &&
+      isUsableStatus(chunk.status) &&
       isHttpUrl(chunk.officialUrl),
   );
 
-  if (input.chunks.some((chunk) => chunk.status !== "vigente") && eligible.length === 0) {
+  if (input.chunks.some((chunk) => !isUsableStatus(chunk.status)) && eligible.length === 0) {
     return abstain("outdated_or_unknown_status");
   }
 

@@ -59,7 +59,7 @@ create table if not exists legal_chunks (
   effective_to date,
   status text not null check (status in ('vigente', 'modificada', 'derogada', 'desconocida')),
   token_count integer check (token_count is null or token_count > 0),
-  embedding vector(1536),
+  embedding vector(1024),
   search_vector tsvector generated always as (to_tsvector('spanish', normalized_text)) stored,
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),

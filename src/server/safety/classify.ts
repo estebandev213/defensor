@@ -25,7 +25,8 @@ const emergencyPatterns = [
   /\baccidente grave|peligro inmediato|violencia fisica|amenaza inmediata\b/,
 ];
 
-const calculationPattern = /\bcalcula|calcular|cuanto|monto|suma|porcentaje\b/;
+const calculationPattern =
+  /\bcalcul(?:a|ar)\b|\b(?:monto|suma|porcentaje)\b|\bcuant(?:o|a|os|as)\s+(?:dinero|pagar|debo|pago|monto)\b/;
 const documentPattern = /\bdemanda|carta notarial|escrito|documento legal\b/;
 const generalConversationPattern = /^(hola|buenas|gracias|ok|adios)[!. ]*$/;
 

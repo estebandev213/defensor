@@ -10,6 +10,7 @@ describe("initial data migration", () => {
     expect(migration).toContain("create table if not exists legal_sources");
     expect(migration).toContain("create table if not exists legal_documents");
     expect(migration).toContain("create table if not exists legal_chunks");
+    expect(migration).toContain("embedding vector(1024)");
     expect(migration).toContain("legal_chunks_embedding_idx");
     expect(migration).toContain("legal_chunks_search_idx");
     expect(migration).toContain("create table if not exists feedback_events");

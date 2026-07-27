@@ -92,6 +92,15 @@ describe("query classification and clarification", () => {
     expect(decision.missingFacts).toHaveLength(1);
     expect(decision.question).toContain("régimen");
   });
+
+  it("does not treat a statutory duration question as a calculation", () => {
+    const result = classifyQuery("¿Cuántos días de vacaciones corresponden al trabajador?");
+
+    expect(result.intent).toBe("legal_question");
+    expect(result.category).toBe("vacaciones");
+    expect(result.coverageStatus).toBe("supported");
+    expect(result.missingFacts[0]?.key).toBe("legal_regime");
+  });
 });
 
 describe("evidence gate", () => {
@@ -123,7 +132,7 @@ describe("evidence gate", () => {
     const classification = classifyQuery("¿Qué dice el despido en el régimen privado general?");
     const outdated = evaluateEvidence({
       classification,
-      chunks: [chunk({ status: "modificada" })],
+      chunks: [chunk({ status: "derogada" })],
     });
     const conflicting = evaluateEvidence({
       classification,
@@ -139,6 +148,17 @@ describe("evidence gate", () => {
 
     expect(outdated.reasonCode).toBe("outdated_or_unknown_status");
     expect(conflicting.reasonCode).toBe("conflicting_sources");
+  });
+
+  it("allows official sources that are current with modifications", () => {
+    const classification = classifyQuery("Que dice el despido en el regimen privado general?");
+    const decision = evaluateEvidence({
+      classification,
+      chunks: [chunk({ status: "modificada" })],
+    });
+
+    expect(decision.action).toBe("answer");
+    expect(decision.reasonCode).toBe("sufficient_evidence");
   });
 
   it("runs classification and clarification before retrieval evidence", () => {
@@ -165,6 +185,16 @@ describe("citation validator", () => {
       expect(result.citations[0]?.officialUrl).toBe("https://www.gob.pe/norma");
       expect(result.answer.citationIds).toEqual([chunkId]);
     }
+  });
+
+  it("validates citations from official sources current with modifications", () => {
+    const result = validateCitations({
+      answer: answer([chunkId]),
+      chunks: [chunk({ status: "modificada" })],
+      sources: new Map([[sourceId, source({ status: "modificada" })]]),
+    });
+
+    expect(result.ok).toBe(true);
   });
 
   it("rejects invented citation IDs with a safe abstention", () => {

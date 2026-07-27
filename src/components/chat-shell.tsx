@@ -248,6 +248,19 @@ export function ChatShell() {
     }
   }
 
+  async function submitFeedback(answerId: string, rating: "helpful" | "not_helpful") {
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, answerId, rating }),
+      });
+      if (response.ok) dispatch({ type: "feedback", messageId: answerId, rating });
+    } catch {
+      // Feedback is optional; do not interrupt the consultation if it cannot be saved.
+    }
+  }
+
   function openCitation(citationId: string) {
     dispatch({ type: "open_sources", citationId });
   }
@@ -308,7 +321,7 @@ export function ChatShell() {
                     {state.messages.map((message) => message.role === "user" ? (
                       <div key={message.id} className="flex justify-end"><div className="max-w-[36rem] rounded-2xl rounded-br-md bg-brass-soft px-5 py-4 text-sm leading-6 text-ink sm:text-base">{message.content}</div></div>
                     ) : (
-                      <div key={message.id} className="flex items-start gap-3"><div className="mt-1 grid size-9 shrink-0 place-items-center rounded-full bg-navy text-brass"><ScalesIcon className="size-5" /></div><AssistantAnswer message={message} onCitation={openCitation} onFeedback={(rating) => dispatch({ type: "feedback", messageId: message.id, rating })} /></div>
+                      <div key={message.id} className="flex items-start gap-3"><div className="mt-1 grid size-9 shrink-0 place-items-center rounded-full bg-navy text-brass"><ScalesIcon className="size-5" /></div><AssistantAnswer message={message} onCitation={openCitation} onFeedback={(rating) => { void submitFeedback(message.id, rating); }} /></div>
                     ))}
                   </section>
                 )}
@@ -338,7 +351,7 @@ export function ChatShell() {
               <p className="mt-3 text-center text-xs leading-5 text-muted">No compartas DNI, dirección, teléfonos, nombres completos ni documentos confidenciales.</p>
             </div>
           </main>
-          <SourcesPanel citations={citations} selectedCitationId={state.selectedCitationId} onSelectCitation={(citationId) => dispatch({ type: "open_sources", citationId })} />
+          <SourcesPanel citations={citations} selectedCitationId={state.selectedCitationId} showEyebrow={false} onSelectCitation={(citationId) => dispatch({ type: "open_sources", citationId })} />
         </div>
         <footer className="hidden min-h-12 items-center justify-center gap-6 border-t border-border bg-surface px-6 text-xs text-navy-soft xl:flex"><span>Fuentes oficiales del Gobierno del Perú</span><span aria-hidden="true">•</span><span>Defensor puede cometer errores</span><span aria-hidden="true">•</span><span>Beta</span></footer>
       </div>

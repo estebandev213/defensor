@@ -151,6 +151,13 @@ function toRetrievedChunk(row: RetrievalRow): RetrievedChunk {
   };
 }
 
+function toPgTextArrayLiteral(values: readonly string[]): string {
+  if (values.length === 0) return "{}";
+  return `{${values
+    .map((value) => `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`)
+    .join(",")}}`;
+}
+
 export class PostgresLegalCatalogRepository implements LegalRepository {
   public constructor(
     private readonly db: DatabaseClient,
@@ -214,9 +221,9 @@ export class PostgresLegalCatalogRepository implements LegalRepository {
   }
 
   private async searchLexically(input: HybridSearchInput): Promise<RetrievalRow[]> {
-    const topics = this.db.array(input.topics ?? []);
+    const topics = toPgTextArrayLiteral(input.topics ?? []);
     const effectiveAt = input.effectiveAt ?? null;
-    const legalRegime = input.legalRegime ?? null;
+    const legalRegime = input.legalRegime ? toPgTextArrayLiteral([input.legalRegime]) : "{}";
     return this.db<RetrievalRow[]>`
       select c.id, c.document_id, c.source_id, c.chunk_index, c.article_label, c.article_number,
         c.subsection, c.heading_path, c.exact_text, c.normalized_text, c.citation_label, c.anchor,
@@ -227,7 +234,7 @@ export class PostgresLegalCatalogRepository implements LegalRepository {
       join legal_sources s on s.id = c.source_id
       where c.search_vector @@ websearch_to_tsquery('spanish', ${input.query})
         and c.status in ('vigente', 'modificada')
-        and (${legalRegime}::text is null or ${legalRegime} = any(c.legal_regime))
+        and (cardinality(${legalRegime}::text[]) = 0 or c.legal_regime && ${legalRegime}::text[])
         and (cardinality(${topics}::text[]) = 0 or c.topics && ${topics}::text[])
         and (${effectiveAt}::date is null or c.effective_from is null or c.effective_from <= ${effectiveAt}::date)
         and (${effectiveAt}::date is null or c.effective_to is null or c.effective_to >= ${effectiveAt}::date)
@@ -240,9 +247,9 @@ export class PostgresLegalCatalogRepository implements LegalRepository {
     if (!this.embeddingProvider) return [];
     const embedding = await this.embeddingProvider.embedQuery(input.query);
     const vectorLiteral = toPgVectorLiteral(embedding);
-    const topics = this.db.array(input.topics ?? []);
+    const topics = toPgTextArrayLiteral(input.topics ?? []);
     const effectiveAt = input.effectiveAt ?? null;
-    const legalRegime = input.legalRegime ?? null;
+    const legalRegime = input.legalRegime ? toPgTextArrayLiteral([input.legalRegime]) : "{}";
     return this.db<RetrievalRow[]>`
       select c.id, c.document_id, c.source_id, c.chunk_index, c.article_label, c.article_number,
         c.subsection, c.heading_path, c.exact_text, c.normalized_text, c.citation_label, c.anchor,
@@ -253,7 +260,7 @@ export class PostgresLegalCatalogRepository implements LegalRepository {
       join legal_sources s on s.id = c.source_id
       where c.embedding is not null
         and c.status in ('vigente', 'modificada')
-        and (${legalRegime}::text is null or ${legalRegime} = any(c.legal_regime))
+        and (cardinality(${legalRegime}::text[]) = 0 or c.legal_regime && ${legalRegime}::text[])
         and (cardinality(${topics}::text[]) = 0 or c.topics && ${topics}::text[])
         and (${effectiveAt}::date is null or c.effective_from is null or c.effective_from <= ${effectiveAt}::date)
         and (${effectiveAt}::date is null or c.effective_to is null or c.effective_to >= ${effectiveAt}::date)

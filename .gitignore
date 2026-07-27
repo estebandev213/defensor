@@ -5,6 +5,8 @@ playwright-report/
 test-results/
 coverage/
 artifacts/
+data/legal/raw/
+data/legal/legal.zip
 *.tsbuildinfo
 .env
 .env.local

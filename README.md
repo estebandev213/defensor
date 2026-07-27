@@ -2,7 +2,13 @@
 
 Defensor is a Spanish-language web foundation for clear, cautious guidance on Peruvian labor questions. The product is designed to answer from official legal sources, show verifiable citations, and abstain when the available evidence is not sufficient.
 
-The current branch contains the Foundation, Data, Retrieval, Safety pipeline, Chat UI, public SEO, Evaluation, and production-hardening phases. It is not yet connected to a production LLM or populated legal corpus.
+## Production-first standard
+
+Defensor is a production-targeted product, not a development demo or disposable prototype. Development environments and local commands exist only to validate behavior that is intended for production. Every change must meet production standards for correctness, security, privacy, observability, accessibility, failure handling, testing, and deployment readiness.
+
+Incomplete integrations, placeholder legal content, fake metrics, decorative flows, and development-only shortcuts are not acceptable as product behavior. Any remaining gap must be explicit, tested where possible, and treated as a release blocker until it is resolved.
+
+The current branch contains the Foundation, Data, Retrieval, Safety pipeline, Chat UI, public SEO, Evaluation, and production-hardening phases. Provider adapters are connected for Groq/OpenAI-compatible chat generation and Jina/OpenAI-compatible embeddings; production use still requires valid credentials, a populated official corpus, and evaluation gates.
 
 ## Current scope
 
@@ -21,7 +27,7 @@ The current branch contains the Foundation, Data, Retrieval, Safety pipeline, Ch
 - Versioned 80-case golden evaluation dataset, retrieval/generation/product metric functions, and blocked-state reports that keep unmeasured values null until a corpus and predictions exist.
 - Production safeguards: hashed in-memory rate limits, request timeouts and abort handling, security headers, PII-redacted logs, bounded safe telemetry, provider fallback contracts, corpus export, secret scanning, and GitHub Actions checks.
 
-Not included yet: a configured database, populated legal corpus, production LLM provider, retrieval-backed answer generation, authentication, persistent history, favorites, calculators, profiles, payments, or document uploads.
+Not included yet: a configured production database with embedded legal chunks, authentication, persistent history, favorites, calculators, profiles, payments, or document uploads.
 
 ## Architecture
 
@@ -46,7 +52,7 @@ The foundation keeps provider and legal-domain work out of the UI. The current c
 
 The project pins `pnpm@10.12.4` through `packageManager`.
 
-## Local development
+## Local setup for production-targeted work
 
 ```bash
 pnpm install
@@ -64,14 +70,18 @@ Initial routes:
 - `/privacidad` and `/terminos` - V1 privacy and scope notices.
 - `/sitemap.xml` and `/robots.txt` - technical SEO routes.
 - `/api/health` - process and minimal configuration healthcheck.
+- `POST /api/feedback` - validates and stores sanitized usefulness feedback without conversation text.
+- `GET /api/sources/[id]` - returns public metadata for an official legal source.
 
-Copy `.env.example` to `.env.local` for local configuration. The Foundation runs without external providers.
+Copy `.env.example` to `.env.local` for local configuration. The application still runs in safe clarification/abstention mode without external providers. When a corpus is configured, the chat route uses the configured embedding provider for semantic retrieval and the configured LLM provider for structured answer generation before citation validation.
 
 ## Data commands
 
 ```bash
+pnpm ingest:pdf
 pnpm ingest:validate
 pnpm ingest:dry
+pnpm ingest
 pnpm db:migrate
 pnpm db:check
 pnpm eval
@@ -79,9 +89,13 @@ pnpm corpus:export
 pnpm security:scan
 ```
 
-The committed seed is intentionally empty until official legal sources are reviewed and ingested. Database commands require `DATABASE_URL`.
+`pnpm ingest:pdf` reads the reviewed catalog in `data/legal/corpus-legal-defensor-v1.json` and PDFs in `data/legal/raw/`, then deterministically writes the text seed to `data/legal/corpus.seed.json`. It requires Python with `pypdf` installed. The extractor includes only reviewed, recommended, official, current sources with extractable text; it does not call providers or write to the database. Run `pnpm ingest:validate` after regeneration. Database commands require `DATABASE_URL`.
 
-`pnpm eval` validates `data/evaluation/golden.json` and writes `artifacts/evals/latest.json` and `artifacts/evals/latest.md`. The current report is intentionally blocked because the legal corpus and prediction providers are not configured.
+The seed is ready for the next ingestion stage, which must generate embeddings with the configured provider and upsert them into `legal_chunks`. The V1 schema uses 1024 dimensions, matching the default output of `jina-embeddings-v3`; keep `EMBEDDING_DIMENSIONS=1024` for the configured Jina model.
+
+`pnpm ingest` performs that next stage: it checks the database dimension, generates embeddings in batches, and upserts the corpus transactionally. The CLI automatically reads `.env.local` when present; in CI or production, provide the same variables through the process environment. It requires `DATABASE_URL`, `EMBEDDING_API_KEY`, `EMBEDDING_PROVIDER`, and `EMBEDDING_MODEL`.
+
+`pnpm eval` validates `data/evaluation/golden.json` and writes `artifacts/evals/latest.json` and `artifacts/evals/latest.md`. The current report remains blocked until the legal corpus is populated and deterministic predictions or a test provider are connected.
 
 ## Verification
 

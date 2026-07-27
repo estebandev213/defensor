@@ -8,10 +8,10 @@ export type AppErrorCode =
   | "INSUFFICIENT_EVIDENCE"
   | "CITATION_VALIDATION_FAILED"
   | "UNSUPPORTED_CATEGORY"
+  | "SOURCE_NOT_FOUND"
   | "TIMEOUT"
   | "INTERNAL_ERROR";
 
 export function publicError(code: AppErrorCode): { error: AppErrorCode } {
   return { error: code };
 }
-

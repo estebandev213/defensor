@@ -7,6 +7,7 @@ interface SourcesPanelProps {
   citations: ChatCitation[];
   selectedCitationId: string | null;
   mobileOpen?: boolean;
+  showEyebrow?: boolean;
   onSelectCitation: (citationId: string) => void;
   onClose?: () => void;
 }
@@ -63,6 +64,7 @@ export function SourcesPanel({
   citations,
   selectedCitationId,
   mobileOpen = false,
+  showEyebrow = true,
   onSelectCitation,
   onClose,
 }: SourcesPanelProps) {
@@ -72,7 +74,7 @@ export function SourcesPanel({
     <div className="flex h-full min-h-0 flex-col p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted">Respaldo legal</p>
+          {showEyebrow ? <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted">Respaldo legal</p> : null}
           <h2 className="mt-1 font-serif text-xl font-semibold text-ink">Fuentes citadas</h2>
           <p className="mt-1 text-sm text-navy-soft">{citations.length} {citations.length === 1 ? "fuente usada" : "fuentes usadas"}</p>
         </div>

@@ -8,13 +8,13 @@ describe("environment validation", () => {
       APP_URL: "http://localhost:3000",
       APP_VERSION: "test-version",
       TELEMETRY_ENABLED: "false",
-      EMBEDDING_DIMENSIONS: "1536",
+      EMBEDDING_DIMENSIONS: "1024",
     });
 
     expect(result.NODE_ENV).toBe("test");
     expect(result.APP_VERSION).toBe("test-version");
     expect(result.TELEMETRY_ENABLED).toBe(false);
-    expect(result.EMBEDDING_DIMENSIONS).toBe(1536);
+    expect(result.EMBEDDING_DIMENSIONS).toBe(1024);
   });
 
   it("rejects an invalid application URL", () => {

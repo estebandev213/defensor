@@ -15,6 +15,10 @@ function isHttpUrl(value: string): boolean {
   }
 }
 
+function isUsableStatus(status: string): boolean {
+  return status === "vigente" || status === "modificada";
+}
+
 function excerpt(text: string): string {
   const compact = text.replace(/\s+/g, " ").trim();
   return compact.length > 280 ? `${compact.slice(0, 277)}...` : compact;
@@ -89,8 +93,8 @@ export function validateCitations(input: {
       return safeCitationFailure("source_not_found", [id]);
     }
     if (
-      source.status !== "vigente" ||
-      chunk.status !== "vigente" ||
+      !isUsableStatus(source.status) ||
+      !isUsableStatus(chunk.status) ||
       !source.officialUrl ||
       !chunk.officialUrl ||
       !isHttpUrl(source.officialUrl) ||
