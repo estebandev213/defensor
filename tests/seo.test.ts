@@ -10,6 +10,7 @@ describe("public SEO surface", () => {
 
     expect(entries).toHaveLength(publicPaths.length);
     expect(urls.some((url) => url.endsWith("/chat"))).toBe(false);
+    expect(urls.some((url) => url.endsWith("/derechos-laborales"))).toBe(false);
     expect(urls.some((url) => url.endsWith("/derechos-laborales/despido"))).toBe(true);
   });
 

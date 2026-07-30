@@ -8,6 +8,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function ChatPage() {
-  return <ChatShell />;
+export default async function ChatPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const initialQuery = typeof params.q === "string" ? params.q : undefined;
+  return <ChatShell initialQuery={initialQuery} />;
 }

@@ -204,7 +204,7 @@ export function Sidebar({
 
           <div className="order-3 space-y-2">
             <Link
-              href="/como-funciona"
+              href="/#como-funciona"
               className="flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-paper px-3 text-center text-sm font-semibold text-navy-soft transition hover:bg-background hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass"
             >
               ¿Cómo funciona?

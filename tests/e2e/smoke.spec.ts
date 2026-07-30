@@ -2,10 +2,25 @@ import { expect, test } from "@playwright/test";
 
 test("landing can open the interactive chat shell", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Entiende tus derechos laborales." })).toBeVisible();
-  await page.getByRole("link", { name: "Consultar mi caso" }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Entiende tus derechos laborales con claridad.",
+    }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Consultar mi caso" }).first().click();
   await expect(page).toHaveURL(/\/chat$/);
   await expect(page.getByRole("heading", { name: "Cuéntame tu caso" })).toBeVisible();
+});
+
+test("chat safely prefills a landing query", async ({ page }) => {
+  const query = "Necesito orientación sobre mis vacaciones";
+  await page.goto(`/chat?q=${encodeURIComponent(query)}`);
+
+  const composer = page.getByRole("textbox", {
+    name: "Escribe tu consulta laboral",
+  });
+  await expect(composer).toHaveValue(query);
+  await expect(composer).toBeFocused();
 });
 
 test("mobile menu exposes only the V1 sidebar controls", async ({ page }) => {

@@ -64,9 +64,9 @@ Initial routes:
 - `/` - public landing page.
 - `/chat` - consultation shell.
 - `/como-funciona` - product and safety process.
-- `/metodologia` - retrieval, evidence, and citation methodology.
+- `/metodologia` - evidence and citation methodology.
 - `/fuentes` - public source-catalog status.
-- `/derechos-laborales` - index of preparation pages for supported topics.
+- `/#temas-principales` - landing section that indexes the supported topics (`/derechos-laborales` redirects here).
 - `/privacidad` and `/terminos` - V1 privacy and scope notices.
 - `/sitemap.xml` and `/robots.txt` - technical SEO routes.
 - `/api/health` - process and minimal configuration healthcheck.

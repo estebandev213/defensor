@@ -73,7 +73,6 @@ export const publicPaths = [
   "/como-funciona",
   "/metodologia",
   "/fuentes",
-  "/derechos-laborales",
   "/derechos-laborales/despido",
   "/derechos-laborales/cts",
   "/derechos-laborales/gratificaciones",

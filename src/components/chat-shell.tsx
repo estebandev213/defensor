@@ -281,7 +281,9 @@ function AssistantAnswer({
   );
 }
 
-export function ChatShell() {
+const MAX_QUESTION_LENGTH = 5000;
+
+export function ChatShell({ initialQuery }: { initialQuery?: string } = {}) {
   const [initialConversationId] = useState(() => createId());
   const [state, dispatch] = useReducer(chatReducer, initialChatState);
   const [conversations, setConversations] = useState<ChatConversation[]>(() => [
@@ -291,7 +293,9 @@ export function ChatShell() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(
+    () => initialQuery?.slice(0, MAX_QUESTION_LENGTH) ?? "",
+  );
   const abortRef = useRef<AbortController | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const lastTurnRef = useRef<{ content: string; style: "normal" | "simple" } | null>(null);
@@ -310,6 +314,12 @@ export function ChatShell() {
   const hasLiveReasoning = state.liveReasoning.steps.length > 0 || state.liveReasoning.understanding !== null;
 
   useEffect(() => () => abortRef.current?.abort(), []);
+
+  // Arriving from the landing demo with a prefilled query: focus the composer
+  // so the person only has to press Enter, not hunt for the input.
+  useEffect(() => {
+    if (initialQuery) composerRef.current?.focus();
+  }, [initialQuery]);
 
   useEffect(() => {
     if (!state.sourcesOpen) return;
@@ -537,6 +547,7 @@ export function ChatShell() {
           onInput={(event) => setDraft(event.currentTarget.value)}
           onKeyDown={handleComposerKeyDown}
           rows={1}
+          maxLength={MAX_QUESTION_LENGTH}
           disabled={isBusy}
           className="min-h-11 flex-1 resize-none border-0 bg-transparent px-3 py-2 text-left text-base leading-6 text-ink placeholder:text-left placeholder:text-muted focus:border-0 focus:outline-none focus:ring-0 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60"
           placeholder={composerPlaceholder}
@@ -573,7 +584,7 @@ export function ChatShell() {
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="flex min-h-0 flex-1">
-          <main className={cn("relative flex min-w-0 flex-1 flex-col overflow-hidden", isEmptyState ? "bg-background" : "bg-paper")}>
+          <main className={cn("relative flex min-w-0 flex-1 flex-col overflow-hidden", isEmptyState ? "empty-chat-panel" : "bg-paper")}>
             <button
               type="button"
               className="absolute left-3 top-3 z-20 inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl bg-paper text-navy-soft shadow-sm ring-1 ring-border hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass lg:hidden"
@@ -586,7 +597,7 @@ export function ChatShell() {
             </button>
             {citations.length > 0 ? <button type="button" className="absolute right-3 top-3 z-20 inline-flex min-h-11 items-center gap-2 rounded-xl bg-paper px-3 text-sm font-semibold text-navy-soft shadow-sm ring-1 ring-border hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass xl:hidden" onClick={() => dispatch({ type: "open_sources" })}>Fuentes <span className="rounded-full bg-brass-soft px-2 py-0.5 text-xs text-ink">{citations.length}</span></button> : null}
             <div className={cn("chat-scrollbar min-h-0 flex-1", isEmptyState ? "overflow-hidden pb-8" : "overflow-y-auto pb-52")}>
-              <div className={cn("mx-auto flex w-full max-w-[53rem] flex-1 flex-col px-4 sm:px-8", isEmptyState ? "empty-chat-panel min-h-full" : "py-5 sm:py-8")}>
+              <div className={cn("mx-auto flex w-full max-w-[53rem] flex-1 flex-col px-4 sm:px-8", isEmptyState ? "min-h-full" : "py-5 sm:py-8")}>
                 {isEmptyState ? (
                   <div className="pointer-events-none sticky top-0 z-30 flex h-0 justify-center">
                     <div className="pointer-events-auto inline-flex max-w-[calc(100vw-2rem)] translate-y-4 items-center gap-2 rounded-full border border-verified/20 bg-paper/90 px-7 py-3.5 text-center text-xs text-verified shadow-[0_2px_12px_rgba(46,111,94,0.04)] backdrop-blur sm:px-9 sm:py-4 sm:text-sm">
