@@ -176,7 +176,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="relative z-[1] mx-auto w-full max-w-[680px] lg:max-w-[920px] lg:justify-self-end">
+        <div className="relative z-[1] mx-auto w-full max-w-[320px] sm:max-w-[360px] lg:max-w-[420px] lg:justify-self-end">
           <div className="absolute -right-8 -top-10 size-48 rounded-full bg-brass-soft/80 blur-3xl" aria-hidden="true" />
           <HeroDemo />
         </div>

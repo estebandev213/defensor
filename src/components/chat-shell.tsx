@@ -602,7 +602,7 @@ export function ChatShell({ initialQuery }: { initialQuery?: string } = {}) {
                   <div className="pointer-events-none sticky top-0 z-30 flex h-0 justify-center">
                     <div className="pointer-events-auto inline-flex max-w-[calc(100vw-2rem)] translate-y-4 items-center gap-2 rounded-full border border-verified/20 bg-paper/90 px-7 py-3.5 text-center text-xs text-verified shadow-[0_2px_12px_rgba(46,111,94,0.04)] backdrop-blur sm:px-9 sm:py-4 sm:text-sm">
                       <span className="grid size-6 shrink-0 place-items-center rounded-full bg-verified/10"><ShieldCheckIcon /></span>
-                      Las respuestas se revisan contra fuentes oficiales
+                      Revisado con fuentes oficiales
                     </div>
                   </div>
                 ) : null}
@@ -620,9 +620,9 @@ export function ChatShell({ initialQuery }: { initialQuery?: string } = {}) {
                     <div className="mt-8 flex w-full max-w-[46rem] flex-col gap-10">
                       <div>
                         <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-muted">Puedes empezar con algunos ejemplos</p>
-                        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible">
+                        <div className="mt-4 flex flex-col gap-2 sm:grid sm:grid-cols-3 sm:gap-3">
                           {suggestedPrompts.slice(0, 3).map((prompt) => (
-                            <button type="button" key={prompt.label} className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-border-soft bg-paper px-4 text-left text-xs text-navy-soft shadow-sm transition hover:border-brass hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass sm:px-3 sm:text-sm" onClick={() => setDraft(prompt.label)}>
+                            <button type="button" key={prompt.label} className="inline-flex min-h-11 w-full items-center justify-start gap-2 rounded-full border border-border-soft bg-paper px-4 text-left text-xs text-navy-soft shadow-sm transition hover:border-brass hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass sm:w-auto sm:justify-center sm:px-3 sm:text-sm" onClick={() => setDraft(prompt.label)}>
                               <span className="text-brass"><SuggestionIcon name={prompt.icon} /></span>{prompt.label}
                             </button>
                           ))}
