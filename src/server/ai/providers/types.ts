@@ -7,7 +7,7 @@ export interface ProviderFetch {
 }
 
 export class ProviderUnavailableError extends Error {
-  public readonly code = "PROVIDER_UNAVAILABLE" as const;
+  public readonly code: "PROVIDER_UNAVAILABLE" | "PROVIDER_RATE_LIMITED" = "PROVIDER_UNAVAILABLE";
 
   public constructor(
     message: string,
@@ -15,6 +15,27 @@ export class ProviderUnavailableError extends Error {
   ) {
     super(message);
     this.name = "ProviderUnavailableError";
+  }
+}
+
+/**
+ * An upstream 429 is not the same failure as an outage: retrying makes it
+ * strictly worse, because the tokens a retry reserves count against the same
+ * window that is already exhausted. It subclasses ProviderUnavailableError so
+ * existing catch sites keep degrading safely, while callers that can back off
+ * are able to tell the two apart.
+ */
+export class ProviderRateLimitError extends ProviderUnavailableError {
+  public override readonly code = "PROVIDER_RATE_LIMITED" as const;
+
+  public constructor(
+    message: string,
+    provider: ProviderKind,
+    /** Seconds the provider asked us to wait, when it said. */
+    public readonly retryAfterSeconds: number | null = null,
+  ) {
+    super(message, provider);
+    this.name = "ProviderRateLimitError";
   }
 }
 

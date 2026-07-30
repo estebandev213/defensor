@@ -17,7 +17,8 @@ export interface EvidenceDecision {
     | "conflicting_sources"
     | "unsupported_regime"
     | "outdated_or_unknown_status"
-    | "out_of_scope";
+    | "out_of_scope"
+    | "emergency";
   supportingChunkIds: string[];
   missingFacts?: string[];
 }

@@ -1,6 +1,7 @@
 export {
   createLLMProvider,
   createLLMProviderFromEnv,
+  FailoverLLMProvider,
   OpenAICompatibleLLMProvider,
 } from "@/server/ai/providers/llm";
 export {
@@ -16,4 +17,4 @@ export type {
   LLMStructuredInput,
   ProviderConfig,
 } from "@/server/ai/providers/types";
-export { ProviderUnavailableError } from "@/server/ai/providers/types";
+export { ProviderRateLimitError, ProviderUnavailableError } from "@/server/ai/providers/types";

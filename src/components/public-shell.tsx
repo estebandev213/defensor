@@ -4,15 +4,16 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export function PublicHeader() {
   return (
-    <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-6 sm:px-8 lg:px-10">
+    <header className="relative z-10 mx-auto flex w-full max-w-[1440px] items-center justify-between px-5 py-5 sm:px-8 lg:px-10 lg:py-7">
       <Link href="/" aria-label="Defensor, inicio"><BrandMark /></Link>
-      <nav className="hidden items-center gap-6 text-sm font-semibold text-navy-soft lg:flex" aria-label="Navegación pública">
+      <nav className="hidden items-center gap-8 text-[0.93rem] font-semibold text-navy-soft xl:flex" aria-label="Navegación pública">
         <Link href="/como-funciona" className="transition hover:text-ink">Cómo funciona</Link>
         <Link href="/metodologia" className="transition hover:text-ink">Metodología</Link>
         <Link href="/fuentes" className="transition hover:text-ink">Fuentes</Link>
+        <a href="#preguntas" className="transition hover:text-ink">Preguntas frecuentes</a>
       </nav>
       <div className="flex items-center gap-3">
-        <span className="hidden items-center gap-2 text-sm text-navy-soft sm:flex"><span className="size-2 rounded-full bg-verified" aria-hidden="true" />Fuentes oficiales como respaldo</span>
+        <Link href="/chat" className="hidden min-h-11 items-center rounded-xl bg-navy px-5 text-sm font-semibold text-paper shadow-sm transition hover:bg-navy/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:inline-flex">Consultar mi caso</Link>
         <ThemeToggle />
       </div>
     </header>

@@ -3,18 +3,24 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  showLabel?: boolean;
+  className?: string;
+}
+
+export function ThemeToggle({ showLabel = false, className = "" }: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
   const isDark = mounted && resolvedTheme === "dark";
+  const themeLabel = isDark ? "Oscuro" : "Claro";
 
   return (
     <button
       type="button"
-      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-border bg-paper text-navy-soft transition hover:border-brass hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      className={`inline-flex min-h-11 items-center justify-center rounded-xl border border-border bg-paper text-navy-soft transition hover:border-brass hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass focus-visible:ring-offset-2 focus-visible:ring-offset-background ${showLabel ? "gap-2 px-3" : "min-w-11"} ${className}`}
       aria-label={isDark ? "Activar tema claro" : "Activar tema oscuro"}
       title={isDark ? "Tema claro" : "Tema oscuro"}
       onClick={() => setTheme(isDark ? "light" : "dark")}
@@ -29,6 +35,7 @@ export function ThemeToggle() {
           <path d="M20.1 15.2A8.5 8.5 0 0 1 8.8 3.9 8.5 8.5 0 1 0 20.1 15.2Z" />
         </svg>
       )}
+      {showLabel ? <span className="text-center text-sm font-semibold">{themeLabel}</span> : null}
     </button>
   );
 }

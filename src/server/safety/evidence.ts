@@ -1,4 +1,4 @@
-import type { LegalAnswer, QueryClassification } from "@/server/ai/schemas";
+import type { LegalAnswer, TurnPlan } from "@/server/ai/schemas";
 import type { RetrievedChunk } from "@/server/rag/types";
 import type {
   EvidenceDecision,
@@ -61,9 +61,8 @@ export function evaluateEvidence(
 ): EvidenceDecision {
   const { classification, clarification } = input;
 
-  if (classification.intent === "out_of_scope" || classification.intent === "emergency") {
-    return abstain("out_of_scope");
-  }
+  if (classification.intent === "emergency") return abstain("emergency");
+  if (classification.intent === "out_of_scope") return abstain("out_of_scope");
 
   if (classification.coverageStatus === "unsupported") {
     return abstain(
@@ -105,57 +104,65 @@ export function evaluateEvidence(
       .map((chunk) => chunk.id),
   };
 }
-export function createSafeAbstention(
-  decision: EvidenceDecision,
-): LegalAnswer {
+function conversationalBlock(text: string): LegalAnswer["reply"] {
+  return [{ text, isLegalClaim: false, citationIds: [] }];
+}
+
+export function createSafeAbstention(decision: EvidenceDecision): LegalAnswer {
   const messageByReason: Record<EvidenceDecision["reasonCode"], string> = {
-    sufficient_evidence: "La evidencia recuperada permite preparar una respuesta con citas.",
+    sufficient_evidence:
+      "Encontré normas oficiales que respaldan una respuesta para tu caso.",
     missing_material_fact:
-      "Necesito un dato importante de tu caso antes de responder con seguridad.",
+      "Necesito un dato más de tu caso antes de darte una orientación en la que puedas confiar.",
     low_retrieval_confidence:
-      "No encontré evidencia legal oficial suficiente para responder con seguridad.",
+      "Busqué en las normas oficiales pero no encontré nada suficientemente claro para responderte con respaldo. Prefiero decírtelo antes que darte algo que quizá no aplique a tu caso. Si me cuentas un poco más de tu situación, lo intento de nuevo.",
     conflicting_sources:
-      "Encontré fuentes que requieren una revisión de vigencia o contexto antes de responder.",
+      "Encontré normas que se contradicen o que podrían haber cambiado, y no quiero orientarte con información que no puedo confirmar. Te conviene revisarlo con SUNAFIL o con un abogado.",
     unsupported_regime:
-      "El régimen laboral de tu consulta no está cubierto de forma suficiente por el corpus actual.",
+      "Tu caso parece estar en un régimen laboral que todavía no cubro bien, así que no quiero arriesgarme a orientarte mal. SUNAFIL o el MTPE pueden ayudarte con esto.",
     outdated_or_unknown_status:
-      "Las fuentes encontradas no tienen un estado de vigencia suficientemente claro.",
+      "Las normas que encontré no tienen una vigencia clara y no quiero apoyarme en algo que podría estar derogado. Vale la pena confirmarlo con una fuente oficial.",
     out_of_scope:
-      "Esta consulta está fuera del alcance de orientación laboral peruana de Defensor.",
+      "Eso se sale de lo que puedo ver: solo oriento sobre derechos laborales en Perú. Si tienes alguna duda sobre tu trabajo, con gusto la vemos.",
+    emergency:
+      "Antes que nada: si estás en peligro o alguien salió herido, llama al 105 o al 106 ahora mismo. Cuando estés a salvo, puedes reportar lo ocurrido a SUNAFIL, y aquí vemos juntos qué derechos laborales te amparan.",
   };
 
+  const isClarification = decision.action === "clarify";
+
   return {
-    answerType: decision.action === "clarify" ? "clarification" : "abstention",
-    title: decision.action === "clarify" ? "Necesito un dato más" : "No puedo responder con seguridad",
-    summary: messageByReason[decision.reasonCode],
-    sections: [],
-    nextSteps:
-      decision.action === "clarify" && decision.missingFacts?.[0]
-        ? [`Aclara este dato: ${decision.missingFacts[0]}.`]
-        : ["Revisa las fuentes oficiales o consulta a SUNAFIL, MTPE o un profesional."] ,
-    warnings: ["Defensor no reemplaza la asesoría de un abogado."],
+    answerType: isClarification ? "clarification" : "abstention",
+    reply: conversationalBlock(messageByReason[decision.reasonCode]),
+    followUpQuestion: null,
+    quickReplies: isClarification ? [] : ["Contarte más de mi caso"],
     citationIds: [],
-    confidenceLabel:
-      decision.action === "clarify"
-        ? "needs_more_information"
-        : "insufficient_evidence",
+    confidenceLabel: isClarification ? "needs_more_information" : "insufficient_evidence",
   };
 }
 
-export function createClarificationAnswer(
-  classification: QueryClassification,
-): LegalAnswer {
-  const missingFact = classification.missingFacts[0];
-  const decision: EvidenceDecision = {
-    action: "clarify",
-    reasonCode: "missing_material_fact",
-    supportingChunkIds: [],
-    missingFacts: missingFact ? [missingFact.key] : [],
-  };
-  const answer = createSafeAbstention(decision);
+/** Warm, non-legal reply used when the planner decides to just talk. */
+export function createConversationalAnswer(plan: TurnPlan): LegalAnswer {
   return {
-    ...answer,
-    summary: missingFact?.question ?? answer.summary,
-    nextSteps: [],
+    answerType: "clarification",
+    reply: conversationalBlock(plan.reply ?? "Cuéntame qué está pasando en tu trabajo."),
+    followUpQuestion: null,
+    quickReplies: plan.quickReplies,
+    citationIds: [],
+    confidenceLabel: "needs_more_information",
+  };
+}
+
+/** Asks the single missing fact the planner selected, keeping the tone conversational. */
+export function createClarificationAnswer(plan: TurnPlan): LegalAnswer {
+  const missingFact = plan.missingFacts[0];
+  if (!missingFact) return createConversationalAnswer(plan);
+
+  return {
+    answerType: "clarification",
+    reply: plan.reply ? conversationalBlock(plan.reply) : conversationalBlock(missingFact.whyItMatters),
+    followUpQuestion: missingFact.question,
+    quickReplies: missingFact.quickReplies.length > 0 ? missingFact.quickReplies : plan.quickReplies,
+    citationIds: [],
+    confidenceLabel: "needs_more_information",
   };
 }

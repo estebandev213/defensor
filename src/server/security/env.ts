@@ -19,6 +19,12 @@ const envSchema = z.object({
   LLM_PROVIDER: optionalEnvString(),
   LLM_API_KEY: optionalEnvString(),
   LLM_MODEL: optionalEnvString(),
+  LLM_BASE_URL: optionalEnvString(),
+  /** Second provider, used when the primary is rate limited or unreachable. */
+  LLM_FALLBACK_PROVIDER: optionalEnvString(),
+  LLM_FALLBACK_API_KEY: optionalEnvString(),
+  LLM_FALLBACK_MODEL: optionalEnvString(),
+  LLM_FALLBACK_BASE_URL: optionalEnvString(),
   EMBEDDING_PROVIDER: optionalEnvString(),
   EMBEDDING_API_KEY: optionalEnvString(),
   EMBEDDING_MODEL: optionalEnvString(),

@@ -29,12 +29,15 @@ function safeCitationFailure(reason: string, invalidCitationIds: string[]): Cita
     ok: false,
     answer: {
       answerType: "abstention",
-      title: "No puedo verificar esta respuesta",
-      summary:
-        "La respuesta generada no pudo validarse contra las fuentes recuperadas. No la mostraré sin respaldo verificable.",
-      sections: [],
-      nextSteps: ["Intenta nuevamente o consulta una fuente oficial directamente."],
-      warnings: ["Defensor no reemplaza la asesoría de un abogado."],
+      reply: [
+        {
+          text: "Preparé una respuesta, pero no pude comprobar que cada parte estuviera respaldada por las fuentes oficiales. Prefiero no darte algo que no puedo sustentar. ¿Lo intentamos otra vez, quizá contándome un poco más de tu caso?",
+          isLegalClaim: false,
+          citationIds: [],
+        },
+      ],
+      followUpQuestion: null,
+      quickReplies: ["Intentar otra vez"],
       citationIds: [],
       confidenceLabel: "insufficient_evidence",
     },
@@ -62,8 +65,8 @@ export function validateCitations(input: {
     if (!chunkById.has(citationId)) invalidIds.add(citationId);
   }
 
-  for (const section of answer.sections) {
-    for (const citationId of section.citationIds) {
+  for (const block of answer.reply) {
+    for (const citationId of block.citationIds) {
       referencedIds.add(citationId);
       if (!chunkById.has(citationId)) invalidIds.add(citationId);
     }
@@ -76,8 +79,12 @@ export function validateCitations(input: {
     return { ok: true, answer: { ...answer, citationIds: [] }, citations: [] };
   }
 
-  if (answer.sections.length === 0 || answer.sections.some((section) => section.citationIds.length === 0)) {
-    return safeCitationFailure("uncited_legal_section", [...invalidIds]);
+  // Conversational blocks carry no legal claim and need no citation, but every
+  // block that states what the law says must be backed, and an answer must
+  // contain at least one such block.
+  const legalClaims = answer.reply.filter((block) => block.isLegalClaim);
+  if (legalClaims.length === 0 || legalClaims.some((block) => block.citationIds.length === 0)) {
+    return safeCitationFailure("uncited_legal_claim", [...invalidIds]);
   }
   if (invalidIds.size > 0) {
     return safeCitationFailure("unknown_citation_id", [...invalidIds]);
@@ -125,9 +132,9 @@ export function validateCitations(input: {
   const normalizedAnswer: LegalAnswer = {
     ...answer,
     citationIds: citations.map((citation) => citation.id),
-    sections: answer.sections.map((section) => ({
-      ...section,
-      citationIds: [...new Set(section.citationIds)],
+    reply: answer.reply.map((block) => ({
+      ...block,
+      citationIds: [...new Set(block.citationIds)],
     })),
   };
 

@@ -50,29 +50,45 @@ function source(overrides: Partial<LegalSource> = {}): LegalSource {
 function answer(citationIds: string[] = [chunkId]): LegalAnswer {
   return {
     answerType: "answer",
-    title: "Orientación inicial",
-    summary: "Esta es una explicación basada en la fuente recuperada.",
-    sections: [
+    reply: [
       {
-        heading: "Qué dice la norma",
-        paragraphs: ["La norma establece esta regla."],
+        text: "Entiendo, y lamento que estés pasando por esto.",
+        isLegalClaim: false,
+        citationIds: [],
+      },
+      {
+        text: "La norma establece esta regla para tu caso.",
+        isLegalClaim: true,
         citationIds,
       },
     ],
-    nextSteps: ["Verifica las fechas y documentos de tu caso."],
-    warnings: [],
+    followUpQuestion: "¿Quieres que veamos qué documentos te conviene reunir?",
+    quickReplies: ["Sí, veamos eso"],
     citationIds,
     confidenceLabel: "evidence_supported",
   };
 }
 
 describe("query classification and clarification", () => {
-  it("classifies a supported labor question and identifies a material regime fact", () => {
-    const result = classifyQuery("Me despidieron, ¿qué beneficios me corresponden?");
+  it("does not block a generic dismissal question on the regime", () => {
+    const result = classifyQuery("Me despidieron");
 
     expect(result.intent).toBe("legal_question");
     expect(result.category).toBe("despido");
     expect(result.coverageStatus).toBe("supported");
+    expect(result.missingFacts).toEqual([]);
+  });
+
+  it("asks for the date before assessing a potentially unlawful dismissal", () => {
+    const result = classifyQuery("¿Mi despido fue injustificado?");
+
+    expect(result.missingFacts[0]?.key).toBe("termination_date");
+    expect(result.missingFacts[0]?.question).toContain("fecha");
+  });
+
+  it("asks for the regime when a concrete CTS entitlement is requested", () => {
+    const result = classifyQuery("¿Me corresponde CTS?");
+
     expect(result.missingFacts[0]?.key).toBe("legal_regime");
   });
 
@@ -88,9 +104,8 @@ describe("query classification and clarification", () => {
     const classification = classifyQuery("Me despidieron y necesito saber mi liquidación");
     const decision = runClarificationGate(classification);
 
-    expect(decision.action).toBe("clarify");
-    expect(decision.missingFacts).toHaveLength(1);
-    expect(decision.question).toContain("régimen");
+    expect(decision.action).toBe("continue");
+    expect(decision.missingFacts).toEqual([]);
   });
 
   it("does not treat a statutory duration question as a calculation", () => {
@@ -99,7 +114,7 @@ describe("query classification and clarification", () => {
     expect(result.intent).toBe("legal_question");
     expect(result.category).toBe("vacaciones");
     expect(result.coverageStatus).toBe("supported");
-    expect(result.missingFacts[0]?.key).toBe("legal_regime");
+    expect(result.missingFacts).toEqual([]);
   });
 });
 
@@ -164,9 +179,9 @@ describe("evidence gate", () => {
   it("runs classification and clarification before retrieval evidence", () => {
     const result = runSafetyGates({ query: "Me despidieron, ¿qué me corresponde?", chunks: [] });
 
-    expect(result.clarification.action).toBe("clarify");
-    expect(result.evidence.action).toBe("clarify");
-    expect(createSafeAbstention(result.evidence).answerType).toBe("clarification");
+    expect(result.clarification.action).toBe("continue");
+    expect(result.evidence.action).toBe("abstain");
+    expect(createSafeAbstention(result.evidence).answerType).toBe("abstention");
   });
 });
 
@@ -212,7 +227,7 @@ describe("citation validator", () => {
     }
   });
 
-  it("rejects an answer section without citations", () => {
+  it("rejects a legal claim without citations", () => {
     const result = validateCitations({
       answer: answer([]),
       chunks: [chunk()],
@@ -220,6 +235,33 @@ describe("citation validator", () => {
     });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe("uncited_legal_section");
+    if (!result.ok) expect(result.reason).toBe("uncited_legal_claim");
+  });
+
+  it("rejects an answer made only of conversational blocks", () => {
+    const conversationalOnly: LegalAnswer = {
+      ...answer(),
+      reply: [{ text: "Entiendo tu situación.", isLegalClaim: false, citationIds: [] }],
+      citationIds: [],
+    };
+    const result = validateCitations({
+      answer: conversationalOnly,
+      chunks: [chunk()],
+      sources: new Map([[sourceId, source()]]),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("uncited_legal_claim");
+  });
+
+  it("does not require citations on conversational blocks that carry no legal claim", () => {
+    const result = validateCitations({
+      answer: answer([chunkId]),
+      chunks: [chunk()],
+      sources: new Map([[sourceId, source()]]),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.answer.reply[0]?.citationIds).toEqual([]);
   });
 });

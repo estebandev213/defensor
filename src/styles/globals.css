@@ -3,19 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --background: #e7e9e4;
-  --surface: #f6f6f2;
-  --paper: #fcfcfa;
-  --ink: #16253e;
-  --navy: #16253e;
-  --navy-soft: #4b5b72;
-  --muted: #788493;
+  --background: #f7f4ed;
+  --surface: #fbfaf6;
+  --paper: #fffdfa;
+  --ink: #122441;
+  --navy: #122441;
+  --navy-soft: #556074;
+  --muted: #8b8c91;
   --brass: #a9843f;
   --brass-soft: #f0e6d2;
   --verified: #2e6f5e;
   --danger: #a5403b;
-  --border: #dad9cf;
-  --border-soft: #e6e5dc;
+  --border: #e4ddcf;
+  --border-soft: #eee9df;
 }
 
 .dark {
@@ -51,6 +51,88 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+.chat-scrollbar {
+  scrollbar-color: #b8b8b5 transparent;
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+
+.chat-scrollbar::-webkit-scrollbar {
+  width: 0.75rem;
+}
+
+.chat-scrollbar::-webkit-scrollbar-track {
+  margin-block: 0.75rem;
+  background: transparent;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  min-height: 2.75rem;
+  border: 0.25rem solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #d1d1ce, #a2a29f);
+  background-clip: padding-box;
+  transition: background 180ms ease, border-width 180ms ease;
+}
+
+.chat-scrollbar:hover::-webkit-scrollbar-thumb {
+  border-width: 0.2rem;
+  background: linear-gradient(180deg, #b0b0ad, #8e8e8b);
+  background-clip: padding-box;
+}
+
+.dark .chat-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #747b84, #555c65);
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-scrollbar {
+    scroll-behavior: auto;
+  }
+}
+
+.empty-chat-panel {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 12%, color-mix(in srgb, var(--paper) 72%, transparent), transparent 32%),
+    linear-gradient(180deg, var(--background), color-mix(in srgb, var(--background) 86%, var(--paper)));
+}
+
+.empty-chat-panel::before,
+.empty-chat-panel::after {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  opacity: 0.55;
+}
+
+.empty-chat-panel::before {
+  top: -7rem;
+  right: -5rem;
+  width: 13rem;
+  height: 19rem;
+  border-left: 1px solid var(--border-soft);
+  border-radius: 50%;
+  transform: rotate(-20deg);
+  box-shadow: -0.8rem 0 0 -0.7rem var(--border-soft), -1.6rem 0 0 -1.5rem var(--border-soft), -2.4rem 0 0 -2.3rem var(--border-soft);
+}
+
+.empty-chat-panel::after {
+  bottom: -8rem;
+  left: -7rem;
+  width: 12rem;
+  height: 18rem;
+  border-right: 1px solid var(--border-soft);
+  border-radius: 50%;
+  transform: rotate(18deg);
+  box-shadow: 0.8rem 0 0 -0.7rem var(--border-soft), 1.6rem 0 0 -1.5rem var(--border-soft);
+}
+
 ::selection {
   background: var(--brass-soft);
   color: var(--ink);
@@ -69,6 +151,58 @@ textarea:focus-visible {
   outline-offset: 3px;
 }
 
+/* Typewriter headline: the caret blinks beside the last letter the whole time,
+   like the cursor in a text field. */
+@keyframes caret-blink {
+  0%,
+  46% {
+    opacity: 1;
+  }
+  50%,
+  96% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.typing-caret {
+  animation: caret-blink 1.06s steps(1, end) infinite;
+  box-shadow: 0 0 0.7rem color-mix(in srgb, var(--brass) 50%, transparent);
+}
+
+/* Staggered reveal for the assistant reply, applied only after the answer has
+   been validated against its sources. */
+@keyframes reveal-block {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-block {
+  animation: reveal-block 0.42s ease-out both;
+}
+
+@keyframes reasoning-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.reasoning-active {
+  animation: reasoning-pulse 1.4s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -77,5 +211,12 @@ textarea:focus-visible {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+
+  /* The welcome headline types itself for everyone, so its caret has to keep
+     blinking; the blanket rule above would freeze it solid. */
+  .typing-caret {
+    animation-duration: 1.06s !important;
+    animation-iteration-count: infinite !important;
   }
 }

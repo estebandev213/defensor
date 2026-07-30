@@ -1,5 +1,6 @@
 node_modules/
 .next/
+.next-verify/
 out/
 playwright-report/
 test-results/
@@ -14,5 +15,4 @@ data/legal/legal.zip
 !.env.example
 *.log
 AGENTS.md
-docs/
 docs/DEFENSOR_CODEX_INSTRUCTIONS.md

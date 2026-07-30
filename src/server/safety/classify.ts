@@ -3,7 +3,7 @@ import {
   type QueryClassification,
 } from "@/server/ai/schemas";
 
-const supportedCategories = [
+export const supportedCategories = [
   "despido",
   "cts",
   "gratificaciones",
@@ -56,18 +56,40 @@ function classifyCategory(query: string): string {
   return categories.find(([, pattern]) => pattern.test(query))?.[0] ?? "general";
 }
 
-function missingFactsFor(category: string, query: string) {
-  const regimeMarkers = [
+const benefitEntitlementPattern =
+  /\b(?:corresponde|corresponden|derecho|derechos|cuanto|cuanta|monto|pagar|pago|calcular|calculo|liquidacion|beneficios?)\b/;
+
+const dismissalAssessmentPattern =
+  /\b(?:legal|justificado|injustificado|arbitrario|nulo|indemnizacion|reponer|reposicion|reincorporar|reincorporacion)\b/;
+
+const datePattern =
+  /\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\b|\b20\d{2}\b/;
+
+function hasRegimeMarker(query: string): boolean {
+  return [
     /\bregimen\b/,
     /\bprivado general\b/,
     /\bremype|mype|microempresa|pequena empresa\b/,
     /\bcas|agrario|trabajador del hogar|construccion civil\b/,
-  ];
+  ].some((pattern) => pattern.test(query));
+}
 
-  if (
-    supportedCategories.includes(category as (typeof supportedCategories)[number]) &&
-    !hasAny(query, regimeMarkers)
-  ) {
+function shouldClarifyRegime(category: string, query: string): boolean {
+  return ["cts", "gratificaciones", "liquidacion"].includes(category) && benefitEntitlementPattern.test(query);
+}
+
+function missingFactsFor(category: string, query: string) {
+  if (category === "despido" && dismissalAssessmentPattern.test(query) && !datePattern.test(query)) {
+    return [
+      {
+        key: "termination_date",
+        question: "¿En qué fecha terminó tu relación laboral?",
+        reason: "La fecha puede cambiar el análisis del despido y los plazos aplicables.",
+      },
+    ];
+  }
+
+  if (shouldClarifyRegime(category, query) && !hasRegimeMarker(query)) {
     return [
       {
         key: "legal_regime",

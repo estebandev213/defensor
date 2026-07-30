@@ -7,6 +7,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  // Match Next.js: components use the automatic runtime and never import React.
+  esbuild: { jsx: "automatic" },
   test: {
     environment: "node",
     globals: true,
