@@ -3,6 +3,7 @@ import { createDatabaseClient } from "@/db/client";
 import type { LegalSource } from "@/db/types";
 import {
   LegalAnswerDraftSchema,
+  LegalAnswerSchema,
   emptyCaseProfile,
   type CaseProfile,
   type QueryClassification,
@@ -209,6 +210,9 @@ export async function POST(request: Request): Promise<Response> {
         let citations: ValidatedCitation[] = [];
         let retrieved: RetrievedEvidence = { chunks: [], sources: new Map() };
         let evidenceReason = "conversational_turn";
+        let citationValidationReason: string | null = null;
+        let generatedLegalClaimCount = 0;
+        let generatedCitationCount = 0;
 
         if (plan.action === "ask") {
           answer = createClarificationAnswer(plan);
@@ -268,13 +272,27 @@ export async function POST(request: Request): Promise<Response> {
               env.REQUEST_TIMEOUT_MS,
               request.signal,
             );
+            const parsedDraft = LegalAnswerSchema.safeParse(draft);
+            if (parsedDraft.success) {
+              generatedLegalClaimCount = parsedDraft.data.reply.filter(
+                (block) => block.isLegalClaim,
+              ).length;
+              generatedCitationCount = new Set([
+                ...parsedDraft.data.citationIds,
+                ...parsedDraft.data.reply.flatMap((block) => block.citationIds),
+              ]).size;
+            }
             const validated = validateCitations({
               answer: draft,
               chunks: retrieved.chunks,
               sources: retrieved.sources,
             });
             answer = validated.answer;
-            if (validated.ok) citations = validated.citations;
+            if (validated.ok) {
+              citations = validated.citations;
+            } else {
+              citationValidationReason = validated.reason;
+            }
           }
 
           stage(
@@ -302,6 +320,9 @@ export async function POST(request: Request): Promise<Response> {
           evidenceDecision: evidenceReason,
           retrievedCount: retrieved.chunks.length,
           citedCount: citations.length,
+          citationValidationReason,
+          generatedLegalClaimCount,
+          generatedCitationCount,
           totalMs: Date.now() - startedAt,
         });
 
