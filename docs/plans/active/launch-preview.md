@@ -1,12 +1,12 @@
 # Plan: recruiter-ready grounded preview
 
-Status: active
+Status: ready for human production merge
 Specification: `../../specs/launch-preview.md`
 Risk: high
 
 ## Execution status (2026-08-14)
 
-- Steps 1-8 are complete.
+- Steps 1-11 are complete for the Preview candidate.
 - Local quality gates pass: lint, typecheck, 120 unit tests, corpus validation,
   security scan, production build, and the focused claim-support evaluation
   (10/10).
@@ -18,9 +18,16 @@ Risk: high
   validated corpus: 13 sources, 13 documents, 396 chunks, 396 embeddings.
 - Groq and Jina provider variables are configured in Vercel without committing
   or printing their values. OpenRouter is not required for this candidate.
-- Remaining work: generate and verify the fresh Preview deployment, capture
-  browser/API/runtime evidence, and hand the final production merge to the
-  human owner.
+- Preview `dpl_6mUPThpjiXeY9FRyJnoqNmDQdDG9` reached `READY` from commit
+  `c9f2f44`; `/api/health` returned `200` with the database configured.
+- End-to-end CTS verification returned a grounded explanation citing Article
+  44 of the CTS TUO and exposed its official `gob.pe` document link.
+- A non-labor neighbor-noise query abstained without citations. Browser console
+  checks were clean, both `/api/chat` requests returned `200`, and the Vercel
+  runtime error scan found no errors.
+- Remaining action: the human owner merges the final documentation commit into
+  `main`; Git integration then creates the production deployment. No automatic
+  promotion is performed by this plan.
 
 ## Constraints
 
