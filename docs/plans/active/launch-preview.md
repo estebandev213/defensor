@@ -4,6 +4,24 @@ Status: active
 Specification: `../../specs/launch-preview.md`
 Risk: high
 
+## Execution status (2026-08-14)
+
+- Steps 1-8 are complete.
+- Local quality gates pass: lint, typecheck, 120 unit tests, corpus validation,
+  security scan, production build, and the focused claim-support evaluation
+  (10/10).
+- The general AI evaluation remains blocked by design because its dataset does
+  not yet measure successful grounded answers; it is not release evidence.
+- The Vercel project is linked and its public URL is
+  `https://defensor-lu76.vercel.app`.
+- Neon Free is connected with pgvector(1024), both additive migrations, and the
+  validated corpus: 13 sources, 13 documents, 396 chunks, 396 embeddings.
+- Groq and Jina provider variables are configured in Vercel without committing
+  or printing their values. OpenRouter is not required for this candidate.
+- Remaining work: generate and verify the fresh Preview deployment, capture
+  browser/API/runtime evidence, and hand the final production merge to the
+  human owner.
+
 ## Constraints
 
 - Work only on `feat/launch-preview`.
