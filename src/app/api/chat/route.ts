@@ -18,6 +18,7 @@ import {
 import type { LLMMessage, LLMProvider } from "@/server/ai/providers/types";
 import { publicError } from "@/server/security/errors";
 import { env } from "@/server/security/env";
+import { logger } from "@/server/security/logger";
 import { requestClientIdentifier, defaultRateLimiter } from "@/server/security/rate-limit";
 import { AbortError, TimeoutError, withTimeout } from "@/server/security/timeout";
 import { telemetry } from "@/server/telemetry/in-memory";
@@ -294,6 +295,14 @@ export async function POST(request: Request): Promise<Response> {
           retrievedChunkIds: retrieved.chunks.map((chunk) => chunk.id),
           evidenceDecision: evidenceReason,
           citedChunkIds: citations.map((citation) => citation.id),
+        });
+        logger.info("chat_evidence_decision", {
+          category: classification.category,
+          coverageStatus: classification.coverageStatus,
+          evidenceDecision: evidenceReason,
+          retrievedCount: retrieved.chunks.length,
+          citedCount: citations.length,
+          totalMs: Date.now() - startedAt,
         });
 
         emit({

@@ -81,6 +81,16 @@ describe("query classification and clarification", () => {
     expect(result.missingFacts).toEqual([]);
   });
 
+  it("uses a self-contained legal search before a conversational follow-up", () => {
+    const result = classifyQuery("Me despidieron\nEsta semana");
+
+    expect(result.category).toBe("despido");
+    expect(result.searchQueries[0]).toBe(
+      "despido cese relación laboral régimen privado Perú",
+    );
+    expect(result.searchQueries[1]).toBe("me despidieron\nesta semana");
+  });
+
   it("asks for the date before assessing a potentially unlawful dismissal", () => {
     const result = classifyQuery("¿Mi despido fue injustificado?");
 

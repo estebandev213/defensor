@@ -56,6 +56,28 @@ function classifyCategory(query: string): string {
   return categories.find(([, pattern]) => pattern.test(query))?.[0] ?? "general";
 }
 
+const canonicalSearchByCategory: Readonly<Record<string, string>> = {
+  despido: "despido cese relación laboral régimen privado Perú",
+  cts: "compensación por tiempo de servicios CTS régimen privado Perú",
+  gratificaciones: "gratificaciones legales régimen privado Perú",
+  vacaciones: "vacaciones laborales régimen privado Perú",
+  horas_extras: "jornada de trabajo sobretiempo horas extras régimen privado Perú",
+  contratos: "contrato de trabajo régimen privado Perú",
+  liquidacion: "liquidación beneficios sociales cese régimen privado Perú",
+};
+
+function searchQueriesFor(category: string, query: string): string[] {
+  const canonical = canonicalSearchByCategory[category];
+  const regimeAwareCanonical = canonical && /\bremype|mype|microempresa|pequena empresa\b/.test(query)
+    ? canonical.replace("régimen privado", "régimen MYPE")
+    : canonical;
+
+  return [...new Set([
+    regimeAwareCanonical,
+    query || "consulta laboral peruana",
+  ].filter((value): value is string => Boolean(value)))].slice(0, 4);
+}
+
 const benefitEntitlementPattern =
   /\b(?:corresponde|corresponden|derecho|derechos|cuanto|cuanta|monto|pagar|pago|calcular|calculo|liquidacion|beneficios?)\b/;
 
@@ -147,7 +169,10 @@ export function classifyQuery(input: string): QueryClassification {
       intent === "legal_question" && coverageStatus !== "unsupported"
         ? missingFactsFor(category, query)
         : [],
-    searchQueries: [query || "consulta laboral peruana"].slice(0, 4),
+    // Short follow-ups such as "esta semana" carry case context but make poor
+    // lexical/semantic searches. Put a deterministic, topic-specific query
+    // first so the fallback planner remains useful when the LLM is unavailable.
+    searchQueries: searchQueriesFor(category, query),
     riskLevel:
       intent === "emergency" || intent === "out_of_scope"
         ? "high"
