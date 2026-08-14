@@ -20,4 +20,18 @@ describe("environment validation", () => {
   it("rejects an invalid application URL", () => {
     expect(() => validateEnvironment({ NODE_ENV: "test", APP_URL: "not-a-url" })).toThrow();
   });
+
+  it("uses safe defaults when a deployment platform injects blank values", () => {
+    const result = validateEnvironment({
+      NODE_ENV: "test",
+      APP_URL: "",
+      APP_VERSION: "",
+      LOG_LEVEL: "",
+    });
+
+    expect(result.NODE_ENV).toBe("test");
+    expect(result.APP_URL).toBe("http://localhost:3000");
+    expect(result.APP_VERSION).toBe("0.1.0");
+    expect(result.LOG_LEVEL).toBe("info");
+  });
 });
