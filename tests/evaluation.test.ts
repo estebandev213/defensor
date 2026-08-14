@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import goldenCases from "../data/evaluation/golden.json";
 import { EvaluationDatasetSchema } from "@/server/evaluation/schema";
 import { abstentionPrecision, abstentionRecall, hitRate, mean, recallAtK, reciprocalRank } from "@/server/evaluation/metrics";
-import { buildBlockedReport } from "@/server/evaluation/runner";
+import { buildBlockedReport, getEvaluationExitCode } from "@/server/evaluation/runner";
+import claimSupportCases from "../data/evaluation/claim-support.json";
+import {
+  ClaimSupportDatasetSchema,
+  evaluateClaimSupportCases,
+} from "@/server/evaluation/claim-support";
 
 describe("golden evaluation dataset", () => {
   it("matches the required 80-case distribution", () => {
@@ -53,7 +58,36 @@ describe("evaluation report", () => {
 
     expect(report.status).toBe("blocked_no_corpus");
     expect(report.gates.ready).toBe(false);
+    expect(getEvaluationExitCode(report)).toBe(1);
     expect(report.retrieval.hybrid.recallAt5.value).toBeNull();
     expect(report.generation.citationValidity.value).toBeNull();
+  });
+
+  it("exits successfully only for a measured report with ready gates", () => {
+    const blocked = buildBlockedReport(EvaluationDatasetSchema.parse(goldenCases));
+    const measuredButUnready = { ...blocked, status: "measured" as const };
+    const measuredAndReady = {
+      ...measuredButUnready,
+      gates: { ready: true, reasons: [] },
+    };
+
+    expect(getEvaluationExitCode(measuredButUnready)).toBe(1);
+    expect(getEvaluationExitCode(measuredAndReady)).toBe(0);
+  });
+});
+
+describe("claim-support pilot gate", () => {
+  it("measures successful, irrelevant, insufficient, and adversarial cases", () => {
+    const cases = ClaimSupportDatasetSchema.parse(claimSupportCases);
+    const report = evaluateClaimSupportCases(cases, "2026-08-14T00:00:00.000Z");
+
+    expect(cases).toHaveLength(10);
+    expect(new Set(cases.map((evaluationCase) => evaluationCase.kind))).toEqual(
+      new Set(["supported", "irrelevant", "unsupported_anchor", "adversarial", "insufficient"]),
+    );
+    expect(report.status).toBe("measured");
+    expect(report.gates.ready).toBe(true);
+    expect(report.accuracy).toBe(1);
+    expect(report.failed).toBe(0);
   });
 });

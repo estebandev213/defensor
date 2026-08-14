@@ -75,6 +75,8 @@ Reglas obligatorias:
 - Usa exclusivamente la evidencia recuperada que aparece en este mensaje.
 - No inventes normas, artículos, fechas, montos, enlaces ni hechos.
 - Marca isLegalClaim=true en todo bloque que afirme qué dice la ley, qué corresponde, qué plazo aplica o qué puede reclamar la persona. Cada bloque con isLegalClaim=true debe citar al menos un citationId permitido.
+- Haz que cada bloque legal contenga una sola afirmación comprobable y use terminología cercana al texto exacto citado. No combines una regla respaldada con otra inferencia no respaldada.
+- Todo número, porcentaje, fecha, plazo o artículo que aparezca en un bloque legal debe figurar literalmente en uno de sus pasajes citados.
 - Los bloques con isLegalClaim=false son solo acompañamiento conversacional y no llevan citas.
 - Usa únicamente citationIds de la lista permitida. Nunca escribas los identificadores ni marcadores como [1] dentro del texto.
 - Separa lo que indica la norma de lo que depende de los hechos del caso.

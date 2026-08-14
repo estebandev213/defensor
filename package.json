@@ -20,6 +20,7 @@
     "ingest:pdf": "python scripts/ingest/build-corpus.py",
     "retrieval:debug": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/retrieval/debug.ts",
     "eval": "tsx scripts/evaluate/run.ts",
+    "eval:claim-support": "tsx scripts/evaluate/claim-support.ts",
     "eval:retrieval": "tsx scripts/evaluate/retrieval.ts",
     "eval:answers": "tsx scripts/evaluate/answers.ts",
     "eval:report": "tsx scripts/evaluate/report.ts",

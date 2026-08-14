@@ -5,6 +5,7 @@ import type {
   ValidatedCitation,
 } from "@/server/safety/types";
 import type { RetrievedChunk } from "@/server/rag/types";
+import { validateLegalBlockSupport } from "@/server/safety/claim-support";
 
 function isHttpUrl(value: string): boolean {
   try {
@@ -127,6 +128,16 @@ export function validateCitations(input: {
       status: source.status,
     });
     index += 1;
+  }
+
+  const unsupportedClaims = legalClaims.filter(
+    (block) => !validateLegalBlockSupport(block, chunkById).supported,
+  );
+  if (unsupportedClaims.length > 0) {
+    return safeCitationFailure(
+      "claim_not_supported_by_cited_passage",
+      [...new Set(unsupportedClaims.flatMap((block) => block.citationIds))],
+    );
   }
 
   const normalizedAnswer: LegalAnswer = {

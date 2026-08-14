@@ -6,12 +6,15 @@ const optionalEnvString = () =>
     z.string().min(1).optional(),
   );
 
+const emptyToUndefined = (value: unknown) => (value === "" ? undefined : value);
+
 const envSchema = z.object({
-  NODE_ENV: z
-    .enum(["development", "test", "production"])
-    .default("development"),
-  APP_URL: z.string().url().default("http://localhost:3000"),
-  APP_VERSION: z.string().min(1).default("0.1.0"),
+  NODE_ENV: z.preprocess(
+    emptyToUndefined,
+    z.enum(["development", "test", "production"]).default("development"),
+  ),
+  APP_URL: z.preprocess(emptyToUndefined, z.string().url().default("http://localhost:3000")),
+  APP_VERSION: z.preprocess(emptyToUndefined, z.string().min(1).default("0.1.0")),
   DATABASE_URL: optionalEnvString(),
   SUPABASE_URL: optionalEnvString(),
   SUPABASE_ANON_KEY: optionalEnvString(),
@@ -66,7 +69,10 @@ const envSchema = z.object({
     z.boolean().default(true),
   ),
   LEGAL_CORPUS_VERSION: optionalEnvString(),
-  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+  LOG_LEVEL: z.preprocess(
+    emptyToUndefined,
+    z.enum(["debug", "info", "warn", "error"]).default("info"),
+  ),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;
