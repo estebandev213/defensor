@@ -5,7 +5,8 @@ import type {
   EvidenceGateInput,
 } from "@/server/safety/types";
 
-const DEFAULT_MIN_FUSION_SCORE = 1 / 120;
+const DEFAULT_MIN_FUSION_SCORE = 1 / 70;
+const DEFAULT_MIN_SEMANTIC_SCORE = 0.55;
 
 function isHttpUrl(value: string): boolean {
   try {
@@ -57,7 +58,7 @@ function abstain(
 
 export function evaluateEvidence(
   input: EvidenceGateInput,
-  options: { minFusionScore?: number; finalLimit?: number } = {},
+  options: { minFusionScore?: number; minSemanticScore?: number; finalLimit?: number } = {},
 ): EvidenceDecision {
   const { classification, clarification } = input;
 
@@ -82,11 +83,19 @@ export function evaluateEvidence(
   }
 
   const minFusionScore = options.minFusionScore ?? DEFAULT_MIN_FUSION_SCORE;
+  const minSemanticScore = options.minSemanticScore ?? DEFAULT_MIN_SEMANTIC_SCORE;
+  const expectedTopics = classification.category === "general" ? [] : [classification.category];
+  const expectedRegimes = classification.possibleRegimes;
   const eligible = input.chunks.filter(
     (chunk) =>
       chunk.fusionScore >= minFusionScore &&
       isUsableStatus(chunk.status) &&
-      isHttpUrl(chunk.officialUrl),
+      isHttpUrl(chunk.officialUrl) &&
+      (expectedTopics.length === 0 || expectedTopics.some((topic) => chunk.topics.includes(topic))) &&
+      (expectedRegimes.length === 0 || expectedRegimes.some((regime) => chunk.legalRegime.includes(regime))) &&
+      ((chunk.lexicalScore ?? 0) > 0 ||
+        (chunk.semanticScore ?? -1) >= minSemanticScore ||
+        (chunk.lexicalScore !== undefined && chunk.semanticScore !== undefined)),
   );
 
   if (input.chunks.some((chunk) => !isUsableStatus(chunk.status)) && eligible.length === 0) {

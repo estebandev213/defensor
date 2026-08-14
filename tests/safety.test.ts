@@ -9,6 +9,7 @@ import {
 } from "@/server/safety/evidence";
 import { runSafetyGates } from "@/server/safety/pipeline";
 import { validateCitations } from "@/server/safety/citations";
+import { evaluateClaimSupport } from "@/server/safety/claim-support";
 import type { RetrievedChunk } from "@/server/rag/types";
 
 const sourceId = "11111111-1111-4111-8111-111111111111";
@@ -23,6 +24,7 @@ function chunk(overrides: Partial<RetrievedChunk> = {}): RetrievedChunk {
     citationLabel: "Norma oficial, artículo 1",
     officialUrl: "https://www.gob.pe/norma",
     fusionScore: 0.02,
+    lexicalScore: 0.1,
     status: "vigente",
     legalRegime: ["privado_general"],
     topics: ["despido"],
@@ -57,7 +59,7 @@ function answer(citationIds: string[] = [chunkId]): LegalAnswer {
         citationIds: [],
       },
       {
-        text: "La norma establece esta regla para tu caso.",
+        text: "El trabajador tiene derecho a los beneficios establecidos por la norma vigente.",
         isLegalClaim: true,
         citationIds,
       },
@@ -136,7 +138,7 @@ describe("evidence gate", () => {
     const classification = classifyQuery("¿Qué dice el despido en el régimen privado general?");
     const decision = evaluateEvidence({
       classification,
-      chunks: [chunk({ fusionScore: 0.001 })],
+      chunks: [chunk({ fusionScore: 0.001, lexicalScore: undefined })],
     });
 
     expect(decision.action).toBe("abstain");
@@ -163,6 +165,31 @@ describe("evidence gate", () => {
 
     expect(outdated.reasonCode).toBe("outdated_or_unknown_status");
     expect(conflicting.reasonCode).toBe("conflicting_sources");
+  });
+
+  it("rejects evidence from an unrelated topic or regime", () => {
+    const classification = classifyQuery("¿Qué dice el despido en el régimen privado general?");
+    const unrelatedTopic = evaluateEvidence({
+      classification,
+      chunks: [chunk({ topics: ["gratificaciones"] })],
+    });
+    const unrelatedRegime = evaluateEvidence({
+      classification,
+      chunks: [chunk({ legalRegime: ["mype"] })],
+    });
+
+    expect(unrelatedTopic.reasonCode).toBe("low_retrieval_confidence");
+    expect(unrelatedRegime.reasonCode).toBe("low_retrieval_confidence");
+  });
+
+  it("rejects weak semantic-only evidence", () => {
+    const classification = classifyQuery("¿Qué dice el despido en el régimen privado general?");
+    const decision = evaluateEvidence({
+      classification,
+      chunks: [chunk({ lexicalScore: undefined, semanticScore: 0.42 })],
+    });
+
+    expect(decision.reasonCode).toBe("low_retrieval_confidence");
   });
 
   it("allows official sources that are current with modifications", () => {
@@ -225,6 +252,50 @@ describe("citation validator", () => {
       expect(result.errorCode).toBe("CITATION_VALIDATION_FAILED");
       expect(result.answer.answerType).toBe("abstention");
     }
+  });
+
+  it("rejects a legal claim that is irrelevant to its cited passage", () => {
+    const unsupported = answer([chunkId]);
+    unsupported.reply[1] = {
+      text: "La ley ordena pagar dos gratificaciones por Fiestas Patrias y Navidad.",
+      isLegalClaim: true,
+      citationIds: [chunkId],
+    };
+    const result = validateCitations({
+      answer: unsupported,
+      chunks: [chunk()],
+      sources: new Map([[sourceId, source()]]),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("claim_not_supported_by_cited_passage");
+  });
+
+  it("rejects factual anchors that do not exist in the cited passage", () => {
+    const unsupported = answer([chunkId]);
+    unsupported.reply[1] = {
+      text: "El trabajador tiene derecho a los beneficios por 30 días.",
+      isLegalClaim: true,
+      citationIds: [chunkId],
+    };
+    const result = validateCitations({
+      answer: unsupported,
+      chunks: [chunk()],
+      sources: new Map([[sourceId, source()]]),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("claim_not_supported_by_cited_passage");
+  });
+
+  it("measures deterministic support for close legal paraphrases", () => {
+    const support = evaluateClaimSupport(
+      "El trabajador tiene derecho a beneficios establecidos por la norma vigente.",
+      chunk().text,
+    );
+
+    expect(support.supported).toBe(true);
+    expect(support.coverage).toBeGreaterThanOrEqual(0.42);
   });
 
   it("rejects a legal claim without citations", () => {
