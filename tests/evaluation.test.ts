@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import goldenCases from "../data/evaluation/golden.json";
 import { EvaluationDatasetSchema } from "@/server/evaluation/schema";
 import { abstentionPrecision, abstentionRecall, hitRate, mean, recallAtK, reciprocalRank } from "@/server/evaluation/metrics";
-import { buildBlockedReport } from "@/server/evaluation/runner";
+import { buildBlockedReport, getEvaluationExitCode } from "@/server/evaluation/runner";
 
 describe("golden evaluation dataset", () => {
   it("matches the required 80-case distribution", () => {
@@ -53,7 +53,20 @@ describe("evaluation report", () => {
 
     expect(report.status).toBe("blocked_no_corpus");
     expect(report.gates.ready).toBe(false);
+    expect(getEvaluationExitCode(report)).toBe(1);
     expect(report.retrieval.hybrid.recallAt5.value).toBeNull();
     expect(report.generation.citationValidity.value).toBeNull();
+  });
+
+  it("exits successfully only for a measured report with ready gates", () => {
+    const blocked = buildBlockedReport(EvaluationDatasetSchema.parse(goldenCases));
+    const measuredButUnready = { ...blocked, status: "measured" as const };
+    const measuredAndReady = {
+      ...measuredButUnready,
+      gates: { ready: true, reasons: [] },
+    };
+
+    expect(getEvaluationExitCode(measuredButUnready)).toBe(1);
+    expect(getEvaluationExitCode(measuredAndReady)).toBe(0);
   });
 });

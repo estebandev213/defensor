@@ -26,6 +26,12 @@ export interface EvaluationReport {
   };
 }
 
+export function getEvaluationExitCode(
+  report: Pick<EvaluationReport, "status" | "gates">,
+): 0 | 1 {
+  return report.status === "measured" && report.gates.ready ? 0 : 1;
+}
+
 function categoryCounts(cases: readonly EvaluationCase[]): Record<string, number> {
   return cases.reduce<Record<string, number>>((counts, evaluationCase) => {
     counts[evaluationCase.category] = (counts[evaluationCase.category] ?? 0) + 1;
