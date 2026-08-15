@@ -149,6 +149,50 @@ export function createSafeAbstention(decision: EvidenceDecision): LegalAnswer {
   };
 }
 
+/**
+ * Minimal extractive fallback for a broad dismissal turn. It is deliberately
+ * limited to a rule whose wording can be located in one retrieved passage and
+ * is still sent through the normal citation and claim-support validator.
+ */
+export function createGroundedCategoryFallback(
+  category: string,
+  chunks: readonly RetrievedChunk[],
+): LegalAnswer | null {
+  if (category !== "despido") return null;
+
+  const causeChunk = chunks.find((chunk) => {
+    const text = normalizedConflictText(chunk);
+    return text.includes("indispensable la existencia de causa justa") &&
+      text.includes("regimen de la actividad privada");
+  });
+  if (!causeChunk) return null;
+
+  return {
+    answerType: "answer",
+    reply: [
+      {
+        text: "Lamento lo que pasó. Con lo que me contaste, esta es la primera regla que conviene revisar.",
+        isLegalClaim: false,
+        citationIds: [],
+      },
+      {
+        text: "Para despedir a una persona del régimen privado que trabaja cuatro o más horas diarias para el mismo empleador, debe existir una causa justa prevista por ley y debidamente comprobada.",
+        isLegalClaim: true,
+        citationIds: [causeChunk.id],
+      },
+      {
+        text: "La causa justa puede estar relacionada con la capacidad o la conducta del trabajador.",
+        isLegalClaim: true,
+        citationIds: [causeChunk.id],
+      },
+    ],
+    followUpQuestion: "¿Te entregaron una carta indicando la causa y la fecha del despido?",
+    quickReplies: ["Sí, me dieron carta", "No me dieron carta"],
+    citationIds: [causeChunk.id],
+    confidenceLabel: "evidence_supported",
+  };
+}
+
 /** Warm, non-legal reply used when the planner decides to just talk. */
 export function createConversationalAnswer(plan: TurnPlan): LegalAnswer {
   return {

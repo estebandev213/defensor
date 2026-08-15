@@ -16,6 +16,7 @@ import {
   MAX_CONSECUTIVE_QUESTIONS,
   plannedCaseProfile,
   planTurn,
+  prioritizedSearchQueries,
 } from "@/server/safety/turn-plan";
 
 function plan(overrides: Partial<TurnPlan> = {}): TurnPlan {
@@ -169,6 +170,17 @@ describe("turn planner", () => {
     expect(result.caseProfile.topic).toBe("cts");
     expect(result.searchQueries[0]).toContain("CTS");
     expect(result.searchQueries[0]).not.toBe("regimen privado general");
+  });
+
+  it("keeps the deterministic topic query ahead of planner suggestions", () => {
+    const classification = classifyQuery("Me despidieron\nEsta semana");
+    const result = prioritizedSearchQueries(
+      plan({ searchQueries: ["derechos después de salir esta semana"] }),
+      classification,
+    );
+
+    expect(result[0]).toBe("despido causa justa régimen actividad privada");
+    expect(result).toContain("derechos después de salir esta semana");
   });
 
   it("routes a chatty turn through the evidence gate when it slips into a legal claim", () => {
