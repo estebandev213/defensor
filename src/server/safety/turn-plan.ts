@@ -226,6 +226,21 @@ export function clarificationFromPlan(plan: TurnPlan): ClarificationDecision {
   };
 }
 
+/**
+ * Deterministic topic queries are the stable retrieval baseline. Planner
+ * queries can add useful case detail, but must not replace that baseline with
+ * conversational fragments that happen to produce weak semantic matches.
+ */
+export function prioritizedSearchQueries(
+  plan: TurnPlan,
+  classification: QueryClassification,
+): string[] {
+  return [...new Set([
+    ...classification.searchQueries,
+    ...plan.searchQueries,
+  ])].slice(0, 4);
+}
+
 export async function planTurn(input: {
   llm: LLMProvider | null;
   conversation: readonly LLMMessage[];

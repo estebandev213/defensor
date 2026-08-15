@@ -31,7 +31,13 @@ import {
   evaluateEvidence,
 } from "@/server/safety/evidence";
 import { classifyQuery, supportedCategories } from "@/server/safety/classify";
-import { asResearchTurn, clarificationFromPlan, plannedCaseProfile, planTurn } from "@/server/safety/turn-plan";
+import {
+  asResearchTurn,
+  clarificationFromPlan,
+  plannedCaseProfile,
+  planTurn,
+  prioritizedSearchQueries,
+} from "@/server/safety/turn-plan";
 import { validateCitations } from "@/server/safety/citations";
 import type { ValidatedCitation } from "@/server/safety/types";
 import { PostgresLegalCatalogRepository } from "@/server/legal/repository";
@@ -230,7 +236,7 @@ export async function POST(request: Request): Promise<Response> {
           stage("search", searchLabel, "active");
           retrieved = await withTimeout(
             retrieveEvidence(
-              plan.searchQueries,
+              prioritizedSearchQueries(plan, classification),
               retrievalCategory(plan, classification),
               retrievalRegime(plan, classification),
             ),
