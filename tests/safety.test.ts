@@ -4,6 +4,7 @@ import type { LegalAnswer } from "@/server/ai/schemas";
 import { classifyQuery } from "@/server/safety/classify";
 import { runClarificationGate } from "@/server/safety/clarification";
 import {
+  createGroundedCategoryFallback,
   createSafeAbstention,
   evaluateEvidence,
 } from "@/server/safety/evidence";
@@ -86,7 +87,7 @@ describe("query classification and clarification", () => {
 
     expect(result.category).toBe("despido");
     expect(result.searchQueries[0]).toBe(
-      "despido cese relación laboral régimen privado Perú",
+      "despido causa justa régimen actividad privada",
     );
     expect(result.searchQueries[1]).toBe("me despidieron\nesta semana");
   });
@@ -223,6 +224,23 @@ describe("evidence gate", () => {
 });
 
 describe("citation validator", () => {
+  it("builds a validated extractive fallback for a broad dismissal turn", () => {
+    const dismissalChunk = chunk({
+      text: "Artículo 22.- Para el despido de un trabajador sujeto a régimen de la actividad privada, que labore cuatro o más horas diarias para un mismo empleador, es indispensable la existencia de causa justa contemplada en la ley y debidamente comprobada. La causa justa puede estar relacionada con la capacidad o con la conducta del trabajador.",
+    });
+    const fallback = createGroundedCategoryFallback("despido", [dismissalChunk]);
+
+    expect(fallback).not.toBeNull();
+    const result = validateCitations({
+      answer: fallback,
+      chunks: [dismissalChunk],
+      sources: new Map([[sourceId, source()]]),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.citations).toHaveLength(1);
+  });
+
   it("creates indexed, source-backed citations and removes orphan IDs", () => {
     const answerWithOrphan = answer([chunkId]);
     const result = validateCitations({

@@ -26,6 +26,7 @@ import { telemetry } from "@/server/telemetry/in-memory";
 import {
   createClarificationAnswer,
   createConversationalAnswer,
+  createGroundedCategoryFallback,
   createSafeAbstention,
   evaluateEvidence,
 } from "@/server/safety/evidence";
@@ -213,6 +214,7 @@ export async function POST(request: Request): Promise<Response> {
         let citationValidationReason: string | null = null;
         let generatedLegalClaimCount = 0;
         let generatedCitationCount = 0;
+        let groundedFallbackUsed = false;
 
         if (plan.action === "ask") {
           answer = createClarificationAnswer(plan);
@@ -256,42 +258,70 @@ export async function POST(request: Request): Promise<Response> {
             const supportingChunks = retrieved.chunks.filter((chunk) =>
               evidence.supportingChunkIds.includes(chunk.id),
             );
-            const llm = createLLMProviderFromEnv();
-            const draft = await withTimeout(
-              llm.generateStructured(
-                buildLegalAnswerPrompt({
-                  conversation,
-                  classification,
-                  caseProfile: plan.caseProfile,
-                  understanding: plan.understanding,
-                  chunks: supportingChunks,
-                  style,
-                }),
-                LegalAnswerDraftSchema,
-              ),
-              env.REQUEST_TIMEOUT_MS,
-              request.signal,
+            const groundedFallback = createGroundedCategoryFallback(
+              classification.category,
+              supportingChunks,
             );
-            const parsedDraft = LegalAnswerSchema.safeParse(draft);
-            if (parsedDraft.success) {
-              generatedLegalClaimCount = parsedDraft.data.reply.filter(
-                (block) => block.isLegalClaim,
-              ).length;
-              generatedCitationCount = new Set([
-                ...parsedDraft.data.citationIds,
-                ...parsedDraft.data.reply.flatMap((block) => block.citationIds),
-              ]).size;
-            }
-            const validated = validateCitations({
-              answer: draft,
-              chunks: retrieved.chunks,
-              sources: retrieved.sources,
-            });
-            answer = validated.answer;
-            if (validated.ok) {
-              citations = validated.citations;
-            } else {
-              citationValidationReason = validated.reason;
+            const applyGroundedFallback = (): boolean => {
+              if (!groundedFallback) return false;
+              const fallbackValidation = validateCitations({
+                answer: groundedFallback,
+                chunks: retrieved.chunks,
+                sources: retrieved.sources,
+              });
+              if (!fallbackValidation.ok) {
+                citationValidationReason = fallbackValidation.reason;
+                return false;
+              }
+              answer = fallbackValidation.answer;
+              citations = fallbackValidation.citations;
+              groundedFallbackUsed = true;
+              return true;
+            };
+
+            try {
+              const llm = createLLMProviderFromEnv();
+              const draft = await withTimeout(
+                llm.generateStructured(
+                  buildLegalAnswerPrompt({
+                    conversation,
+                    classification,
+                    caseProfile: plan.caseProfile,
+                    understanding: plan.understanding,
+                    chunks: supportingChunks,
+                    style,
+                  }),
+                  LegalAnswerDraftSchema,
+                ),
+                env.REQUEST_TIMEOUT_MS,
+                request.signal,
+              );
+              const parsedDraft = LegalAnswerSchema.safeParse(draft);
+              if (parsedDraft.success) {
+                generatedLegalClaimCount = parsedDraft.data.reply.filter(
+                  (block) => block.isLegalClaim,
+                ).length;
+                generatedCitationCount = new Set([
+                  ...parsedDraft.data.citationIds,
+                  ...parsedDraft.data.reply.flatMap((block) => block.citationIds),
+                ]).size;
+              }
+              const validated = validateCitations({
+                answer: draft,
+                chunks: retrieved.chunks,
+                sources: retrieved.sources,
+              });
+              answer = validated.answer;
+              if (validated.ok && validated.answer.answerType === "answer") {
+                citations = validated.citations;
+              } else {
+                citationValidationReason = validated.ok
+                  ? "model_abstention"
+                  : validated.reason;
+                applyGroundedFallback();
+              }
+            } catch (error) {
+              if (error instanceof AbortError || !applyGroundedFallback()) throw error;
             }
           }
 
@@ -323,6 +353,7 @@ export async function POST(request: Request): Promise<Response> {
           citationValidationReason,
           generatedLegalClaimCount,
           generatedCitationCount,
+          groundedFallbackUsed,
           totalMs: Date.now() - startedAt,
         });
 

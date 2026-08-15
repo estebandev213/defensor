@@ -57,7 +57,7 @@ function classifyCategory(query: string): string {
 }
 
 const canonicalSearchByCategory: Readonly<Record<string, string>> = {
-  despido: "despido cese relación laboral régimen privado Perú",
+  despido: "despido causa justa régimen actividad privada",
   cts: "compensación por tiempo de servicios CTS régimen privado Perú",
   gratificaciones: "gratificaciones legales régimen privado Perú",
   vacaciones: "vacaciones laborales régimen privado Perú",
